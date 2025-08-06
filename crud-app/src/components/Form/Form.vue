@@ -73,18 +73,25 @@
                 >
                   Update
                 </button>
-                <button
-                  class="bg-red-500 hover:bg-red-600 text-white text-xs px-3 py-1 rounded"
-                  @click="deleteUser(user.user_id)"
-                >
-                  Delete
-                </button>
+               
               </td>
             </tr>
           </tbody>
         </table>
+       
+
       </div>
     </div>
+     <div class="flex justify-end mb-4">
+  <button
+    class="bg-red-600 hover:bg-red-700 text-white text-sm px-4 py-2 rounded shadow"
+    @click="deleteUser"
+    v-if="users.length > 0"
+    
+  >
+    Delete All Users
+  </button>
+</div>
   </div>
 </template>
 
@@ -153,10 +160,16 @@ export default {
     editUser(user) {
       this.firstName = user.first_name;
       this.lastName = user.last_name;
-      this.dob = user.dob;
+   // this.dob = user.dob;
       this.mobile = user.mobile_number;
       this.address = user.address;
       this.editingUserId = user.user_id;
+
+const date = new Date(user.dob);
+  this.dob = date.toISOString().substr(0, 10);
+
+  this.editingUserId = user.user_id;
+
     },
     async updateUser(id) {
       if (this.validateForm()) {
@@ -178,10 +191,11 @@ export default {
         }
       }
     },
-    async deleteUser(id) {
+    async deleteUser() {
+    
       if (confirm("Are you sure you want to delete this user?")) {
         try {
-          await axios.delete(`http://localhost:3000/user/${id}`);
+          await axios.delete(`http://localhost:3000/user`);
           alert("User deleted successfully!");
           this.getUsers();
           this.resetForm();
@@ -203,3 +217,12 @@ export default {
   },
 };
 </script>
+
+<!-- 
+
+ <button
+                  class="bg-red-500 hover:bg-red-600 text-white text-xs px-3 py-1 rounded"
+                  @click="deleteUser(user.user_id)"
+                >
+                  Delete
+                </button> -->

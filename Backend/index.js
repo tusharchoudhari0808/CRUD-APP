@@ -22,15 +22,6 @@ userDB.connect((err) => {
 
 app.use('/user', userRoute);
 
-// app.get("/connect",(req,res) =>{
-//   const conn = userData.connect();
-//   if (conn) {
-//     res.send("Connected to the database successfully!");
-//   } else {
-//     res.status(500).send("Failed to connect to the database.");
-//   }
-
-// })
 
 app.listen(port, () => {
   console.log(`Example app listening on port ${port}`)
