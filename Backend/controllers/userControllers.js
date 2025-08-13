@@ -1,4 +1,5 @@
 const DB = require('../DB/db.js');
+require('dotenv').config();
 
 // Create User
 exports.createUser = async (req, res) => {
