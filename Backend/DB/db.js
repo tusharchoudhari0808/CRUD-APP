@@ -1,5 +1,6 @@
 const {Pool} = require('pg');
 
+ // Connect to PostgreSQL database
 const userDB = new  Pool({
  user: 'postgres',
   host: 'localhost',
@@ -8,6 +9,7 @@ const userDB = new  Pool({
   port: 5432, 
 });
 
+//ceate users table 
 userDB.query(`
   CREATE TABLE IF NOT EXISTS users (
   USER_ID SERIAL PRIMARY KEY,
@@ -24,6 +26,7 @@ userDB.query(`
       console.log('Table created successfully');
     }
   });
+
 
 
 

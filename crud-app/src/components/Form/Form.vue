@@ -1,9 +1,9 @@
 <template>
-  <div class="max-w-4xl mx-auto p-6">
+  <div class="max-w-30x5 mx-auto p-6">
     <h1 class="text-3xl font-bold mb-6 text-center text-blue-700">User Form</h1>
 
     <!-- Form -->
-    <form @submit.prevent="handleSubmit" class="grid grid-cols-1 md:grid-cols-2 gap-4 bg-white p-6 rounded-xl shadow-lg">
+    <form @submit.prevent="handleSubmit" class="grid grid-cols-1  gap-4 bg-white p-6 rounded-xl ">
       <div>
         <input v-model="firstName" placeholder="First Name" class="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
         <p class="text-red-500 text-sm mt-1" v-if="errors.firstName">{{ errors.firstName }}</p>
@@ -40,7 +40,7 @@
       <h2 class="text-2xl font-bold mb-4 text-gray-700">User List</h2>
       <div class="overflow-x-auto">
         <table class="min-w-full border border-gray-300 bg-white rounded-lg shadow-md">
-          <thead class="bg-blue-100">
+          <thead class="bg-green-100">
             <tr>
               <th class="p-3 border text-left">ID</th>
               <th class="p-3 border text-left">First Name</th>
@@ -118,7 +118,7 @@ export default {
   methods: {
     async getUsers() {
       try {
-        const res = await axios.get("http://localhost:3000/user");
+        const res = await axios.get("http://localhost:3000/api/users/getAll");
         this.users = res.data;
       } catch (err) {
         console.error("Error fetching users:", err);
@@ -147,7 +147,7 @@ export default {
             Mobile_Number: this.mobile,
             Address: this.address,
           };
-          await axios.post("http://localhost:3000/user", payload);
+          await axios.post("http://localhost:3000/api/users/create", payload);
           alert("User added successfully!");
           this.getUsers();
           this.resetForm();
@@ -160,10 +160,10 @@ export default {
     editUser(user) {
       this.firstName = user.first_name;
       this.lastName = user.last_name;
-   // this.dob = user.dob;
+    this.dob = user.dob;
       this.mobile = user.mobile_number;
       this.address = user.address;
-      this.editingUserId = user.user_id;
+      this. editingUserId = user.user_id;
 
 const date = new Date(user.dob);
   this.dob = date.toISOString().substr(0, 10);
@@ -181,7 +181,7 @@ const date = new Date(user.dob);
             Mobile_Number: this.mobile,
             Address: this.address,
           };
-          await axios.put(`http://localhost:3000/user/${id}`, payload);
+          await axios.put(`http://localhost:3000/api/users/update/${id}`, payload);
           alert("User updated!");
           this.getUsers();
           this.resetForm();
@@ -195,7 +195,7 @@ const date = new Date(user.dob);
     
       if (confirm("Are you sure you want to delete this user?")) {
         try {
-          await axios.delete(`http://localhost:3000/user`);
+          await axios.delete(`http://localhost:3000/api/users/delete/${id}`);
           alert("User deleted successfully!");
           this.getUsers();
           this.resetForm();
@@ -218,11 +218,5 @@ const date = new Date(user.dob);
 };
 </script>
 
-<!-- 
 
- <button
-                  class="bg-red-500 hover:bg-red-600 text-white text-xs px-3 py-1 rounded"
-                  @click="deleteUser(user.user_id)"
-                >
-                  Delete
-                </button> -->
+               

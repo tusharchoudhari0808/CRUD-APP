@@ -21,8 +21,30 @@ router.post('/', async (req, res) => {
   res.json(result.rows[0]);
 });
 
+
+// GET single user
+router.get('/:id', async (req, res) => {
+  const { id } = req.params;
+  try {
+    const result = await data.query(
+      'SELECT * FROM users WHERE user_id = $1',
+      [id]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    res.json(result.rows[0]); // Send single object
+  } catch (error) {
+    console.error('Error fetching user:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+
 //get all users
-router.get('/', async (req, res) => {
+router.get('/gh', async (req, res) => {
   try {
     const result = await data.query('SELECT * FROM users ORDER BY user_id ASC');
     res.json(result.rows);
@@ -58,38 +80,47 @@ router.put('/:id', async (req, res) => {
 
 
 
-// DELETE user
 
-router.delete('/', async (req, res) => {
+// individual delete user
+router.delete('/:id', async (req, res) => {
+  const { id } = req.params;
+
   try {
-     await data.query('TRUNCATE TABLE users RESTART IDENTITY' );
-     res.status(200).json({message:'All users deleted successfully'});
+    const result = await data.query(
+      
+      'DELETE FROM users WHERE user_id = $1 RETURNING *',
+      [id]
+    );
+
+    if (result.rowCount === 0) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    res.json(result.rows[0]);
   } catch (error) {
     console.error('Error deleting user:', error);
     res.status(500).json({ error: 'Internal Server Error' });
   }
-});
- // individual delete user
-// router.delete('/:id', async (req, res) => {
-//   const { id } = req.params;
+}); 
 
+
+
+// DELETE user
+
+// router.delete('/', async (req, res) => {
 //   try {
-//     const result = await data.query(
-      
-//       'DELETE FROM users WHERE user_id = $1 RETURNING *',
-//       [id]
-//     );
-
-//     if (result.rowCount === 0) {
-//       return res.status(404).json({ error: 'User not found' });
-//     }
-
-//     res.json(result.rows[0]);
+//      await data.query('TRUNCATE TABLE users RESTART IDENTITY' );
+//      res.status(200).json({message:'All users deleted successfully'});
 //   } catch (error) {
 //     console.error('Error deleting user:', error);
 //     res.status(500).json({ error: 'Internal Server Error' });
 //   }
-// }); 
+// });
 
 
 module.exports = router;
+
+
+
+
+
