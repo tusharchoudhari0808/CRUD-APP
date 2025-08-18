@@ -1,7 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
-const userDB = require('./DB/db.js');
+const userDB = require('./config/db.js');
 const userRoute = require('./Routes/RouteUsers.js');
 
 const app = express();
@@ -9,7 +9,7 @@ const port = 3000;
 
 app.use(cors());
 app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
+// app.use(bodyParser.urlencoded({ extended: true }));
 
 // Connect to PostgreSQL
 userDB.connect((err) => {

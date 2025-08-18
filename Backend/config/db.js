@@ -1,12 +1,13 @@
 const {Pool} = require('pg');
+require('dotenv').config();
 
  // Connect to PostgreSQL database
 const userDB = new  Pool({
- user: 'postgres',
-  host: 'localhost',
-  database: 'mydb',
-  password: 'Tushar@08',
-  port: 5432, 
+ user: process.env.user_Name,
+  host: process.env.DB_HOST,
+  database: process.env.database_Name,
+  password: process.env.password_Name,
+  port: Number(process.env.port_Name)
 });
 
 //ceate users table 

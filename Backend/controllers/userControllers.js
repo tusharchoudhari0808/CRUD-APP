@@ -1,4 +1,4 @@
-const DB = require('../DB/db.js');
+const DB = require('../config/db.js');
 
 // Create User
 exports.createUser = async (req, res) => {
