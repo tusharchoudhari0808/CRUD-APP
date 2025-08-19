@@ -111,7 +111,7 @@ export default {
         const user = res.data;
         this.firstName = user.first_name;
         this.lastName = user.last_name;
-        this.dob = user.dob.split("T")[0]; // format for input[type="date"]
+        this.dob = user.dob; 
         this.mobile = user.mobile_number;
         this.address = user.address;
       } catch (err) {

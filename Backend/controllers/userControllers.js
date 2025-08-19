@@ -1,50 +1,71 @@
 const DB = require('../config/db.js');
 
+
 // Create User
 exports.createUser = async (req, res) => {
   const { First_Name, Last_Name, DOB, Mobile_Number, Address } = req.body;
 
   try {
-    await DB.query(
+    // ✅ Check if mobile number already exists
+    const checkMobile = await DB.query(
+      "SELECT * FROM users WHERE Mobile_Number = $1",
+      [Mobile_Number]
+    );
+
+    if (checkMobile.rows.length > 0) {
+      return res.status(400).json({ error: "Mobile number already exists" });
+    }
+
+    // ✅ Insert only if unique
+    const result = await DB.query(
       `INSERT INTO users (First_Name, Last_Name, DOB, Mobile_Number, Address)
        VALUES ($1, $2, $3, $4, $5) RETURNING *`,
       [First_Name, Last_Name, DOB, Mobile_Number, Address]
     );
-    res.status(201).json({ message: 'User created successfully' });
+
+    res.status(201).json({
+      message: "User created successfully",
+      user: result.rows[0],
+    });
   } catch (error) {
-    console.error('Error creating user:', error);
-    res.status(500).json({ error: 'Internal Server Error' });
+    console.error("Error creating user:", error);
+    res.status(500).json({ error: "Internal Server Error" });
   }
 };
+
 
 // Get single user
 exports.getUserById = async (req, res) => {
   const { id } = req.params;
   try {
-    const result = await DB.query(
-      'SELECT * FROM users WHERE user_id = $1',
-      [id]
-    );
+    const result = await DB.query("SELECT * FROM users WHERE user_id = $1", [id]);
+
     if (result.rows.length === 0) {
-      return res.status(404).json({ error: 'User not found' });
+      return res.status(404).json({ error: "User not found" });
     }
-    res.json(result.rows[0]);
+
+    const user = result.rows[0];
+    // ✅ dob is already YYYY-MM-DD string, no conversion needed
+    res.json(user);
   } catch (error) {
-    console.error('Error fetching user:', error);
-    res.status(500).json({ error: 'Internal Server Error' });
+    console.error("Error fetching user:", error);
+    res.status(500).json({ error: "Internal Server Error" });
   }
 };
 
 // Get all users
 exports.getAllUsers = async (req, res) => {
   try {
-    const result = await DB.query('SELECT * FROM users ORDER BY user_id ASC');
+    const result = await DB.query("SELECT * FROM users ORDER BY user_id ASC");
+    // ✅ dob already correct string
     res.json(result.rows);
   } catch (error) {
-    console.error('Error fetching users:', error);
-    res.status(500).json({ error: 'Internal Server Error' });
+    console.error("Error fetching users:", error);
+    res.status(500).json({ error: "Internal Server Error" });
   }
 };
+
+
 
 // Update user
 exports.updateUser = async (req, res) => {

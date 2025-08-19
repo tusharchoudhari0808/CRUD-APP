@@ -1,5 +1,8 @@
-const {Pool} = require('pg');
+const { Pool, types } = require("pg"); 
 require('dotenv').config();
+
+
+types.setTypeParser(1082, (val) => val);
 
  // Connect to PostgreSQL database
 const userDB = new  Pool({
