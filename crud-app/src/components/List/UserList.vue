@@ -9,7 +9,7 @@
       Add User
     </router-link>
 
-    <!-- 🔹 Name search -->
+    <!-- Name search -->
     <input
       type="text"
       placeholder="Search by name..."
@@ -79,7 +79,7 @@ export default {
     this.getUsers(); // fetch all users initially
   },
   methods: {
-    // 🔹 Trigger search if text length > 2
+    //  Trigger search if text length > 2
     async handleSearch() {
       if (this.searchName.length > 2) {
         this.searchUsers();
@@ -88,12 +88,12 @@ export default {
       }
     },
 
-    // 🔹 Search by name
+    // Search by name
     async searchUsers() {
       try {
         const res = await axios.get("http://localhost:3000/api/users/search", {
           params: {
-            first_name: this.searchName || null, // ✅ matches backend param
+            first_name: this.searchName || null, // matches backend param
           },
         });
         this.users = res.data;
@@ -103,7 +103,7 @@ export default {
       }
     },
 
-    // 🔹 Get all users
+    // Get all users
     async getUsers() {
       try {
         const res = await axios.get(`http://localhost:3000/api/users/getAll`);
@@ -113,7 +113,7 @@ export default {
       }
     },
 
-    // 🔹 Format date (YYYY-MM-DD → DD/MM/YYYY)
+    // Format date (YYYY-MM-DD → DD/MM/YYYY)
     formatDate(dateStr) {
       if (!dateStr) return "";
       const [year, month, day] = dateStr.split("-");

@@ -140,7 +140,7 @@ export default {
             alert("User updated successfully!");
 
           } else {
-            // ✅ Create new user
+            //  Create new user
             await axios.post("http://localhost:3000/api/users/create", payload);
             alert("User added successfully!");
           }
