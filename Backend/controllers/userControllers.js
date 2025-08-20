@@ -1,4 +1,27 @@
-const DB = require('../config/db.js');
+const DB = require("../config/db.js");
+
+// search data ....
+
+exports.searchUsers = async (req, res) => {
+  const { first_name } = req.query;
+
+  try {
+    const result = await DB.query(
+      `SELECT * FROM users
+       WHERE ($1::text IS NULL OR first_name ILIKE $1)`,
+      [first_name ? `%${first_name}%` : null]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: "No users found" });
+    }
+
+    res.json(result.rows);
+  } catch (error) {
+    console.error("Error searching users:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
 
 
 // Create User
@@ -33,12 +56,13 @@ exports.createUser = async (req, res) => {
   }
 };
 
-
 // Get single user
 exports.getUserById = async (req, res) => {
   const { id } = req.params;
   try {
-    const result = await DB.query("SELECT * FROM users WHERE user_id = $1", [id]);
+    const result = await DB.query("SELECT * FROM users WHERE user_id = $1", [
+      id,
+    ]);
 
     if (result.rows.length === 0) {
       return res.status(404).json({ error: "User not found" });
@@ -65,8 +89,6 @@ exports.getAllUsers = async (req, res) => {
   }
 };
 
-
-
 // Update user
 exports.updateUser = async (req, res) => {
   const { id } = req.params;
@@ -81,13 +103,13 @@ exports.updateUser = async (req, res) => {
     );
 
     if (result.rows.length === 0) {
-      return res.status(404).json({ error: 'User not found' });
+      return res.status(404).json({ error: "User not found" });
     }
 
     res.json(result.rows[0]);
   } catch (error) {
-    console.error('Error updating user:', error);
-    res.status(500).json({ error: 'Internal Server Error' });
+    console.error("Error updating user:", error);
+    res.status(500).json({ error: "Internal Server Error" });
   }
 };
 
@@ -97,17 +119,17 @@ exports.deleteUser = async (req, res) => {
 
   try {
     const result = await DB.query(
-      'DELETE FROM users WHERE user_id = $1 RETURNING *',
+      "DELETE FROM users WHERE user_id = $1 RETURNING *",
       [id]
     );
 
     if (result.rows.length === 0) {
-      return res.status(404).json({ error: 'User not found' });
+      return res.status(404).json({ error: "User not found" });
     }
 
-    res.json({ message: 'User deleted successfully', user: result.rows[0] });
+    res.json({ message: "User deleted successfully", user: result.rows[0] });
   } catch (error) {
-    console.error('Error deleting user:', error);
-    res.status(500).json({ error: 'Internal Server Error' });
+    console.error("Error deleting user:", error);
+    res.status(500).json({ error: "Internal Server Error" });
   }
 };

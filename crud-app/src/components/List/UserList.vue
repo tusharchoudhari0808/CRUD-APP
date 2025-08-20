@@ -9,6 +9,14 @@
       Add User
     </router-link>
 
+    <!-- 🔹 Name search -->
+    <input
+      type="text"
+      placeholder="Search by name..."
+      class="border p-2 mb-4 w-full max-w-md"
+      v-model="searchName"
+    />
+
     <div class="overflow-x-auto">
       <table
         class="min-w-full border border-gray-300 bg-white rounded-lg shadow-md"
@@ -61,12 +69,41 @@ export default {
   data() {
     return {
       users: [],
+      searchName: "",
     };
   },
+  watch: {
+    searchName: "handleSearch", // watch search input
+  },
   mounted() {
-    this.getUsers();
+    this.getUsers(); // fetch all users initially
   },
   methods: {
+    // 🔹 Trigger search if text length > 2
+    async handleSearch() {
+      if (this.searchName.length > 2) {
+        this.searchUsers();
+      } else if (this.searchName.length === 0) {
+        this.getUsers();
+      }
+    },
+
+    // 🔹 Search by name
+    async searchUsers() {
+      try {
+        const res = await axios.get("http://localhost:3000/api/users/search", {
+          params: {
+            first_name: this.searchName || null, // ✅ matches backend param
+          },
+        });
+        this.users = res.data;
+      } catch (err) {
+        console.error("Error searching users:", err);
+        this.users = [];
+      }
+    },
+
+    // 🔹 Get all users
     async getUsers() {
       try {
         const res = await axios.get(`http://localhost:3000/api/users/getAll`);
@@ -75,15 +112,18 @@ export default {
         console.error("Error fetching users:", err);
       }
     },
-    // ✅ Fix timezone issue (always display correct stored date)
-   formatDate(dateStr) {
-    if (!dateStr) return "";
-    const [year, month, day] = dateStr.split("-");
-    return `${day}/${month}/${year}`; // ✅ No timezone shift
-  },
+
+    // 🔹 Format date (YYYY-MM-DD → DD/MM/YYYY)
+    formatDate(dateStr) {
+      if (!dateStr) return "";
+      const [year, month, day] = dateStr.split("-");
+      return `${day}/${month}/${year}`;
+    },
+
     editUser(user) {
       this.$router.push(`/create/${user.user_id}`);
     },
+
     async deleteUser(id) {
       if (confirm("Are you sure you want to delete this user?")) {
         await axios.delete(`http://localhost:3000/api/users/delete/${id}`);
