@@ -17,6 +17,8 @@
       v-model="searchName"
     />
 
+   
+
     <div class="overflow-x-auto">
       <table
         class="min-w-full border border-gray-300 bg-white rounded-lg shadow-md"
@@ -33,7 +35,8 @@
           </tr>
         </thead>
         <tbody>
-          <tr v-for="user in users" :key="user.user_id">
+          <!-- Use paginatedUsers here -->
+          <tr v-for="user in paginatedUsers" :key="user.user_id">
             <td class="p-3 border">{{ user.user_id }}</td>
             <td class="p-3 border">{{ user.first_name }}</td>
             <td class="p-3 border">{{ user.last_name }}</td>
@@ -57,6 +60,25 @@
           </tr>
         </tbody>
       </table>
+
+      <!-- Pagination -->
+      <div class="flex items-center gap-4 mt-4">
+        <button
+          @click="prevPage"
+          :disabled="page === 1"
+          class="px-3 py-1 bg-gray-300 rounded disabled:opacity-50"
+        >
+          Prev
+        </button>
+        <span>Page {{ page }} of {{ totalPages }}</span>
+        <button
+          @click="nextPage"
+          :disabled="page === totalPages"
+          class="px-3 py-1 bg-gray-300 rounded disabled:opacity-50"
+        >
+          Next
+        </button>
+      </div>
     </div>
   </div>
 </template>
@@ -70,6 +92,9 @@ export default {
     return {
       users: [],
       searchName: "",
+      page: 1,
+      limit: 5,
+      sortId: "",
     };
   },
   watch: {
@@ -78,7 +103,31 @@ export default {
   mounted() {
     this.getUsers(); // fetch all users initially
   },
+  computed: {
+    //  totale pages
+    totalPages() {
+      return Math.ceil(this.users.length / this.limit) || 1;
+    },
+
+    //  Paginate users
+    paginatedUsers() {
+      const start = (this.page - 1) * this.limit;
+      const end = start + this.limit;
+      return this.users.slice(start, end);
+    },
+  },
   methods: {
+    nextPage() {
+      if (this.page < this.totalPages) {
+        this.page++;
+      }
+    },
+    prevPage() {
+      if (this.page > 1) {
+        this.page--;
+      }
+    },
+
     //  Trigger search if text length > 2
     async handleSearch() {
       if (this.searchName.length > 2) {
@@ -93,21 +142,25 @@ export default {
       try {
         const res = await axios.get("http://localhost:3000/api/users/search", {
           params: {
-            first_name: this.searchName || null, // matches backend param
+            first_name: this.searchName || null,
           },
         });
         this.users = res.data;
+        this.page = 1; // reset to first page
       } catch (err) {
         console.error("Error searching users:", err);
         this.users = [];
       }
     },
 
+    
+
     // Get all users
     async getUsers() {
       try {
-        const res = await axios.get(`http://localhost:3000/api/users/getAll`);
+        const res = await axios.get("http://localhost:3000/api/users/getAll");
         this.users = res.data;
+        this.page = 1;
       } catch (err) {
         console.error("Error fetching users:", err);
       }
