@@ -103,7 +103,7 @@ export default {
       searchName: "",
       page: 1,
       limit: 5,
-      sortId: "",
+      sortKey: "",
     };
   },
   watch: {
@@ -137,7 +137,7 @@ export default {
       }
     },
 
-    //  Trigger search if text length > 2
+    //  Trigger search  text length > 2
     async handleSearch() {
       if (this.searchName.length > 2) {
         this.searchUsers();
