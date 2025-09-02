@@ -132,45 +132,64 @@
   </div>
 </template>
 
+<script lang="ts">
+import { defineComponent } from "vue";
+import axios, { AxiosResponse } from "axios";
 
-<script>
-import axios from "axios";
+interface User {
+  user_id: number;
+  first_name: string;
+  last_name: string;
+  dob: string;
+  mobile_number: string;
+  address: string;
+}
 
-export default {
+interface ApiResponse {
+  data: {
+    data: User[];
+    totalPages: number;
+  };
+}
+
+export default defineComponent({
   name: "UserList",
   data() {
     return {
-      users: [],
-      searchName: "",
-      page: 1,
-      limit: 10,
-      sortKey: "",
-      sortOrder: "ASC",
-      totalPages: 1,
-      loading: false,
+      users: [] as User[],
+      searchName: "" as string,
+      page: 1 as number,
+      limit: 10 as number,
+      sortKey: "" as string,
+      sortOrder: "ASC" as "ASC" | "DESC",
+      totalPages: 1 as number,
+      loading: false as boolean,
     };
   },
   mounted() {
     this.fetchUsers();
   },
   computed: {
-    tableVisible() {
+    tableVisible(): boolean {
       return !this.loading && this.users.length > 0;
     },
   },
   methods: {
-    async fetchUsers() {
+    async fetchUsers(): Promise<void> {
       try {
         this.loading = true;
-        const res = await axios.get("http://localhost:3000/api/users/page/list", {
-          params: {
-            page: this.page,
-            limit: this.limit,
-            first_name: this.searchName || "",
-            sortKey: this.sortKey || "",
-            order: this.sortOrder,
-          },
-        });
+        const res: AxiosResponse<ApiResponse> = await axios.get(
+          "http://localhost:3000/api/users/page/list",
+          {
+            params: {
+              page: this.page,
+              limit: this.limit,
+              first_name: this.searchName || "",
+              sortKey: this.sortKey || "",
+              order: this.sortOrder,
+            },
+          }
+        );
 
         console.log("API Response:", res.data);
 
@@ -183,17 +202,17 @@ export default {
       }
     },
 
-    resetAndFetch() {
+    resetAndFetch(): void {
       this.page = 1;
       this.fetchUsers();
     },
 
-    handleSearch() {
+    handleSearch(): void {
       this.page = 1;
       this.fetchUsers();
     },
 
-    async deleteUser(id) {
+    async deleteUser(id: number): Promise<void> {
       if (confirm("Are you sure you want to delete this user?")) {
         try {
           this.loading = true;
@@ -207,29 +226,29 @@ export default {
       }
     },
 
-    nextPage() {
+    nextPage(): void {
       if (this.page < this.totalPages) {
         this.page++;
         this.fetchUsers();
       }
     },
 
-    prevPage() {
+    prevPage(): void {
       if (this.page > 1) {
         this.page--;
         this.fetchUsers();
       }
     },
 
-    formatDate(dateStr) {
+    formatDate(dateStr: string): string {
       if (!dateStr) return "";
       const d = new Date(dateStr);
       return d.toISOString().split("T")[0];
     },
 
-    editUser(user) {
+    editUser(user: User): void {
       this.$router.push({ name: "EditUser", params: { id: user.user_id } });
     },
   },
-};
+});
 </script>

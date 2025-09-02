@@ -1,6 +1,6 @@
 <template>
-  <div class="p-6 max-w-lg mx-auto bg-white shadow rounded-2xl">
-    <h2 class="text-2xl font-bold mb-6 text-gray-700 text-center"> Edit User</h2>
+  <div class="p-6 mx-auto bg-white shadow rounded-2xl">
+    <h2 class="text-2xl font-bold mb-6 text-gray-700 text-center">Edit User</h2>
 
     <form @submit.prevent="updateUser" class="space-y-4">
       <!-- First Name -->
@@ -10,7 +10,7 @@
           v-model="user.firstName"
           type="text"
           placeholder="Enter first name"
-          class="w-full border rounded-lg p-2 focus:ring-2 focus:ring-blue-500"
+          class="w-full border rounded-lg p-2 focus:ring-2 focus:ring-black"
         />
       </div>
 
@@ -21,7 +21,7 @@
           v-model="user.lastName"
           type="text"
           placeholder="Enter last name"
-          class="w-full border rounded-lg p-2 focus:ring-2 focus:ring-blue-500"
+          class="w-full border rounded-lg p-2 focus:ring-2 focus:ring-black"
         />
       </div>
 
@@ -31,7 +31,7 @@
         <input
           v-model="user.dob"
           type="date"
-          class="w-full border rounded-lg p-2 focus:ring-2 focus:ring-blue-500"
+          class="w-full border rounded-lg p-2 focus:ring-2 focus:ring-black"
         />
       </div>
 
@@ -42,7 +42,7 @@
           v-model="user.mobileNumber"
           type="text"
           placeholder="Enter mobile number"
-          class="w-full border rounded-lg p-2 focus:ring-2 focus:ring-blue-500"
+          class="w-full border rounded-lg p-2 focus:ring-2 focus:ring-black"
         />
       </div>
 
@@ -53,7 +53,7 @@
           v-model="user.address"
           rows="3"
           placeholder="Enter address"
-          class="w-full border rounded-lg p-2 focus:ring-2 focus:ring-blue-500"
+          class="w-full border rounded-lg p-2 focus:ring-2 focus:ring-black"
         ></textarea>
       </div>
 
@@ -61,7 +61,7 @@
       <div class="flex items-center justify-between mt-6">
         <button
           type="submit"
-          class="bg-blue-600 text-white px-5 py-2 rounded-lg shadow hover:bg-blue-700 transition"
+          class="bg-black text-white px-5 py-2 rounded-lg shadow hover:bg-green-700 transition"
         >
           Update
         </button>
@@ -76,62 +76,79 @@
   </div>
 </template>
 
-
-<script>
+<script lang="ts">
+import { defineComponent, reactive, onMounted } from "vue";
+import { useRouter } from "vue-router";
 import axios from "axios";
 
-export default {
-  props: ["id"],
-  data() {
-    return {
-      user: {
-        firstName: "",
-        lastName: "",
-        dob: "",
-        mobileNumber: "",
-        address: "",
-      },
-    };
-  },
-  async mounted() {
-    try {
-      //  Get user by ID
-      const res = await axios.get(`http://localhost:3000/api/users/${this.id}`);
-      const u = res.data.data;
+interface User {
+  firstName: string;
+  lastName: string;
+  dob: string;
+  mobileNumber: string;
+  address: string;
+}
 
-      //  Match frontend camelCase with backend snake_case
-      this.user = {
-        firstName: u.first_name,
-        lastName: u.last_name,
-        dob: u.dob,
-        mobileNumber: u.mobile_number,
-        address: u.address,
-      };
-    } catch (err) {
-      console.error("Error fetching user:", err);
-    }
+export default defineComponent({
+  name: "EditUser",
+  props: {
+    id: {
+      type: String,
+      required: true,
+    },
   },
-  methods: {
-    async updateUser() {
+  setup(props) {
+    const router = useRouter();
+
+    const user = reactive<User>({
+      firstName: "",
+      lastName: "",
+      dob: "",
+      mobileNumber: "",
+      address: "",
+    });
+
+    // Fetch user by ID
+    onMounted(async () => {
       try {
-        //  Send correctly mapped payload to backend
+        const res = await axios.get(`http://localhost:3000/api/users/${props.id}`);
+        const u = res.data.data;
+
+        user.firstName = u.first_name;
+        user.lastName = u.last_name;
+        user.dob = u.dob;
+        user.mobileNumber = u.mobile_number;
+        user.address = u.address;
+      } catch (err) {
+        console.error("Error fetching user:", err);
+      }
+    });
+
+    // Update user
+    const updateUser = async () => {
+      try {
         const payload = {
-          First_Name: this.user.firstName,
-          Last_Name: this.user.lastName,
-          DOB: this.user.dob,
-          Mobile_Number: this.user.mobileNumber,
-          Address: this.user.address,
+          First_Name: user.firstName,
+          Last_Name: user.lastName,
+          DOB: user.dob,
+          Mobile_Number: user.mobileNumber,
+          Address: user.address,
         };
 
-        await axios.put(`http://localhost:3000/api/users/update/${this.id}`, payload);
+        await axios.put(`http://localhost:3000/api/users/update/${props.id}`, payload);
 
         alert("User updated successfully!");
-        this.$router.push("/users");
+        router.push("/users");
       } catch (err) {
         console.error("Error updating user:", err);
         alert("Failed to update user");
       }
-    },
+    };
+
+    return {
+      user,
+      updateUser,
+    };
   },
-};
+});
 </script>
