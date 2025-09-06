@@ -1,14 +1,16 @@
-const DB = require('../config/db.js');
-const response = require('../utils/response.js');
+const DB = require("../config/db.js");
+const response = require("../utils/response.js");
 
-//  Create User
+// Create User
 exports.createUser = async (req, res) => {
-  const { First_Name, Last_Name, DOB, Mobile_Number, Address } = req.body;
+  
+  const { first_name, last_name, dob, mobile_number, address } = req.body;
 
   try {
+    // check duplicate mobile
     const checkMobile = await DB.query(
-      "SELECT * FROM users WHERE Mobile_Number = $1",
-      [Mobile_Number]
+      "SELECT * FROM users WHERE mobile_number = $1",
+      [mobile_number]
     );
 
     if (checkMobile.rows.length > 0) {
@@ -16,20 +18,19 @@ exports.createUser = async (req, res) => {
     }
 
     const result = await DB.query(
-      `INSERT INTO users (First_Name, Last_Name, DOB, Mobile_Number, Address)
+      `INSERT INTO users (first_name, last_name, dob, mobile_number, address)
        VALUES ($1, $2, $3, $4, $5) RETURNING *`,
-      [First_Name, Last_Name, DOB, Mobile_Number, Address]
+      [first_name, last_name, dob, mobile_number, address]
     );
 
     return response.success(res, result.rows[0], "User created successfully", 201);
-
   } catch (error) {
     console.error("Error creating user:", error);
     return response.error(res, "Failed to create user");
   }
 };
 
-//  Get All Users
+// Get All Users
 exports.getAllUsers = async (req, res) => {
   try {
     const result = await DB.query("SELECT * FROM users ORDER BY user_id ASC");
@@ -40,7 +41,7 @@ exports.getAllUsers = async (req, res) => {
   }
 };
 
-//  Get User by ID with edite
+// Get User by ID
 exports.getUserById = async (req, res) => {
   const { id } = req.params;
 
@@ -52,25 +53,23 @@ exports.getUserById = async (req, res) => {
     }
 
     return response.success(res, result.rows[0], "User fetched successfully");
-
   } catch (error) {
     console.error("Error fetching user:", error);
     return response.error(res, "Failed to fetch user");
   }
 };
 
-//  Update User
-
+// Update User
 exports.updateUser = async (req, res) => {
   const { id } = req.params;
-  const { First_Name, Last_Name, DOB, Mobile_Number, Address } = req.body;
+  const { first_name, last_name, dob, mobile_number, address } = req.body;
 
   try {
     const result = await DB.query(
       `UPDATE users 
-       SET First_Name = $1, Last_Name = $2, DOB = $3, Mobile_Number = $4, Address = $5
+       SET first_name = $1, last_name = $2, dob = $3, mobile_number = $4, address = $5
        WHERE user_id = $6 RETURNING *`,
-      [First_Name, Last_Name, DOB, Mobile_Number, Address, id]
+      [first_name, last_name, dob, mobile_number, address, id]
     );
 
     if (result.rows.length === 0) {
@@ -84,8 +83,7 @@ exports.updateUser = async (req, res) => {
   }
 };
 
-
-//  Delete User
+// Delete User
 exports.deleteUser = async (req, res) => {
   const { id } = req.params;
 
@@ -97,14 +95,13 @@ exports.deleteUser = async (req, res) => {
     }
 
     return response.success(res, result.rows[0], "User deleted successfully");
-
   } catch (error) {
     console.error("Error deleting user:", error);
     return response.error(res, "Failed to delete user");
   }
 };
 
-//  Paginate + Search + Sort Users
+// Pagination + Search + Sort
 exports.paginateUsers = async (req, res) => {
   const page = parseInt(req.query.page) || 1;
   const limit = parseInt(req.query.limit) || 10;
@@ -112,9 +109,9 @@ exports.paginateUsers = async (req, res) => {
 
   const { first_name, sortKey, order } = req.query;
 
-  const validSort = ['first_name', 'dob', 'user_id'];
-  const sortColumn = validSort.includes(sortKey) ? sortKey : 'user_id';
-  const sortOrder = order && order.toUpperCase() === 'DESC' ? 'DESC' : 'ASC';
+  const validSort = ["first_name", "dob", "user_id"];
+  const sortColumn = validSort.includes(sortKey) ? sortKey : "user_id";
+  const sortOrder = order && order.toUpperCase() === "DESC" ? "DESC" : "ASC";
 
   try {
     const result = await DB.query(
@@ -134,14 +131,17 @@ exports.paginateUsers = async (req, res) => {
 
     const total = parseInt(countRes.rows[0].count);
 
-    return response.success(res, {
-      page,
-      limit,
-      total,
-      totalPages: Math.ceil(total / limit),
-      data: result.rows,
-    }, "Users fetched successfully");
-
+    return response.success(
+      res,
+      {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
+        data: result.rows,
+      },
+      "Users fetched successfully"
+    );
   } catch (error) {
     console.error("Error fetching paginated users:", error);
     return response.error(res, "Failed to fetch users");

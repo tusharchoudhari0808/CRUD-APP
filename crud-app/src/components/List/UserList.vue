@@ -1,11 +1,10 @@
 <template>
   <div class="max-w-6xl mx-auto p-8">
-    <!-- Page Heading -->
     <h2 class="text-4xl font-extrabold mb-8 text-center text-blue-700 tracking-wide">
       User List
     </h2>
 
-    <!-- Add User Button -->
+    <!-- Add User -->
     <div class="flex justify-end mb-6">
       <router-link
         to="/create"
@@ -15,7 +14,7 @@
       </router-link>
     </div>
 
-    <!-- Search + Sort Controls -->
+    <!-- Search + Sort -->
     <div class="flex flex-wrap gap-4 mb-6">
       <input
         type="text"
@@ -24,22 +23,12 @@
         v-model="searchName"
         @input="handleSearch"
       />
-
-      <select
-        v-model="sortKey"
-        @change="resetAndFetch"
-        class="px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
-      >
+      <select v-model="sortKey" @change="resetAndFetch" class="px-4 py-3 border rounded-lg">
         <option value="">Sort By</option>
         <option value="first_name">First Name</option>
         <option value="dob">DOB</option>
       </select>
-
-      <select
-        v-model="sortOrder"
-        @change="resetAndFetch"
-        class="px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
-      >
+      <select v-model="sortOrder" @change="resetAndFetch" class="px-4 py-3 border rounded-lg">
         <option value="ASC">Ascending</option>
         <option value="DESC">Descending</option>
       </select>
@@ -47,16 +36,12 @@
 
     <!-- Loader -->
     <div v-if="loading" class="flex justify-center items-center h-40">
-      <div
-        class="w-12 h-12 rounded-full border-4 border-t-blue-500 border-r-green-500 border-b-yellow-500 border-l-red-500 animate-spin"
-      ></div>
+      <div class="w-12 h-12 rounded-full border-4 border-t-blue-500 border-r-green-500 border-b-yellow-500 border-l-red-500 animate-spin"></div>
     </div>
 
     <!-- Table -->
     <div v-if="tableVisible" class="overflow-x-auto">
-      <table
-        class="min-w-full border border-gray-200 bg-white rounded-xl shadow-lg overflow-hidden"
-      >
+      <table class="min-w-full border border-gray-200 bg-white rounded-xl shadow-lg overflow-hidden">
         <thead class="bg-blue-50 text-blue-700">
           <tr>
             <th class="p-4 text-left border">ID</th>
@@ -69,11 +54,7 @@
           </tr>
         </thead>
         <tbody>
-          <tr
-            v-for="user in users"
-            :key="user.user_id"
-            class="hover:bg-gray-50 transition"
-          >
+          <tr v-for="user in users" :key="user.user_id" class="hover:bg-gray-50 transition">
             <td class="p-4 border">{{ user.user_id }}</td>
             <td class="p-4 border">{{ user.first_name }}</td>
             <td class="p-4 border">{{ user.last_name }}</td>
@@ -83,13 +64,13 @@
             <td class="p-4 border">
               <div class="flex justify-center gap-3">
                 <button
-                  class="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded-lg shadow transition"
+                  class="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded-lg"
                   @click="editUser(user)"
                 >
                   Edit
                 </button>
                 <button
-                  class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg shadow transition"
+                  class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg"
                   @click="deleteUser(user.user_id)"
                 >
                   Delete
@@ -102,31 +83,17 @@
 
       <!-- Pagination -->
       <div class="flex items-center justify-center gap-6 mt-6">
-        <button
-          @click="prevPage"
-          :disabled="page === 1"
-          class="px-4 py-2 bg-gray-300 rounded-lg disabled:opacity-50 transition"
-        >
+        <button @click="prevPage" :disabled="page === 1" class="px-4 py-2 bg-gray-300 rounded-lg">
           Prev
         </button>
-        <span class="text-gray-700 font-medium">
-          Page {{ page }} of {{ totalPages }}
-        </span>
-        <button
-          @click="nextPage"
-          :disabled="page === totalPages"
-          class="px-4 py-2 bg-gray-300 rounded-lg disabled:opacity-50 transition"
-        >
+        <span>Page {{ page }} of {{ totalPages }}</span>
+        <button @click="nextPage" :disabled="page === totalPages" class="px-4 py-2 bg-gray-300 rounded-lg">
           Next
         </button>
       </div>
     </div>
 
-    <!-- No Data Message -->
-    <div
-      v-if="!loading && users.length === 0"
-      class="text-center text-gray-500 mt-8 text-lg"
-    >
+    <div v-if="!loading && users.length === 0" class="text-center text-gray-500 mt-8 text-lg">
       No users found.
     </div>
   </div>
@@ -179,7 +146,7 @@ export default defineComponent({
       try {
         this.loading = true;
         const res: AxiosResponse<ApiResponse> = await axios.get(
-          "http://localhost:3000/api/users/page/list",
+          "http://localhost:3000/api/users/",
           {
             params: {
               page: this.page,
@@ -191,8 +158,6 @@ export default defineComponent({
           }
         );
 
-        console.log("API Response:", res.data);
-
         this.users = res.data.data.data || [];
         this.totalPages = res.data.data.totalPages || 1;
       } catch (err) {
@@ -201,51 +166,41 @@ export default defineComponent({
         this.loading = false;
       }
     },
-
     resetAndFetch(): void {
       this.page = 1;
       this.fetchUsers();
     },
-
     handleSearch(): void {
       this.page = 1;
       this.fetchUsers();
     },
-
     async deleteUser(id: number): Promise<void> {
       if (confirm("Are you sure you want to delete this user?")) {
         try {
-          this.loading = true;
-          await axios.delete(`http://localhost:3000/api/users/delete/${id}`);
+          await axios.delete(`http://localhost:3000/api/users/${id}`);
           this.fetchUsers();
         } catch (err) {
           console.error("Error deleting user:", err);
-        } finally {
-          this.loading = false;
         }
       }
     },
-
     nextPage(): void {
       if (this.page < this.totalPages) {
         this.page++;
         this.fetchUsers();
       }
     },
-
     prevPage(): void {
       if (this.page > 1) {
         this.page--;
         this.fetchUsers();
       }
     },
-
     formatDate(dateStr: string): string {
       if (!dateStr) return "";
       const d = new Date(dateStr);
       return d.toISOString().split("T")[0];
     },
-
     editUser(user: User): void {
       this.$router.push({ name: "EditUser", params: { id: user.user_id } });
     },

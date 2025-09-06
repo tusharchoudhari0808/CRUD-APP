@@ -112,13 +112,13 @@ export default defineComponent({
     onMounted(async () => {
       try {
         const res = await axios.get(`http://localhost:3000/api/users/${props.id}`);
-        const u = res.data.data;
+        const us = res.data.data;
 
-        user.firstName = u.first_name;
-        user.lastName = u.last_name;
-        user.dob = u.dob;
-        user.mobileNumber = u.mobile_number;
-        user.address = u.address;
+        user.firstName = us.first_name;
+        user.lastName = us.last_name;
+        user.dob = us.dob;
+        user.mobileNumber = us.mobile_number;
+        user.address = us.address;
       } catch (err) {
         console.error("Error fetching user:", err);
       }
@@ -128,14 +128,14 @@ export default defineComponent({
     const updateUser = async () => {
       try {
         const payload = {
-          First_Name: user.firstName,
-          Last_Name: user.lastName,
-          DOB: user.dob,
-          Mobile_Number: user.mobileNumber,
-          Address: user.address,
+          first_name: user.firstName,
+          last_name: user.lastName,
+          dob: user.dob,
+          mobile_number: user.mobileNumber,
+          address: user.address,
         };
 
-        await axios.put(`http://localhost:3000/api/users/update/${props.id}`, payload);
+        await axios.put(`http://localhost:3000/api/users/${props.id}`, payload);
 
         alert("User updated successfully!");
         router.push("/users");

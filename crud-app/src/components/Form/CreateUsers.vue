@@ -18,7 +18,7 @@
           placeholder="Enter first name"
           class="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
         />
-        <p class="text-red-500 text-sm mt-1" v-if="errors.firstName">
+        <p v-if="errors.firstName" class="text-red-500 text-sm mt-1">
           {{ errors.firstName }}
         </p>
       </div>
@@ -33,7 +33,7 @@
           placeholder="Enter last name"
           class="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
         />
-        <p class="text-red-500 text-sm mt-1" v-if="errors.lastName">
+        <p v-if="errors.lastName" class="text-red-500 text-sm mt-1">
           {{ errors.lastName }}
         </p>
       </div>
@@ -47,9 +47,7 @@
           type="date"
           class="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
         />
-        <p class="text-red-500 text-sm mt-1" v-if="errors.dob">
-          {{ errors.dob }}
-        </p>
+        <p v-if="errors.dob" class="text-red-500 text-sm mt-1">{{ errors.dob }}</p>
       </div>
 
       <!-- Mobile -->
@@ -63,7 +61,7 @@
           placeholder="10-digit mobile number"
           class="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
         />
-        <p class="text-red-500 text-sm mt-1" v-if="errors.mobile">
+        <p v-if="errors.mobile" class="text-red-500 text-sm mt-1">
           {{ errors.mobile }}
         </p>
       </div>
@@ -78,7 +76,7 @@
           rows="3"
           class="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
         ></textarea>
-        <p class="text-red-500 text-sm mt-1" v-if="errors.address">
+        <p v-if="errors.address" class="text-red-500 text-sm mt-1">
           {{ errors.address }}
         </p>
       </div>
@@ -116,18 +114,10 @@ interface User {
   address: string;
 }
 
-interface UserPayload {
-  First_Name: string;
-  Last_Name: string;
-  DOB: string;
-  Mobile_Number: string;
-  Address: string;
-}
-
 export default defineComponent({
   name: "CreateUsers",
   props: {
-    id: { type: String, required: false },
+    id: { type: Number, required: false },
   },
   data() {
     return {
@@ -143,46 +133,50 @@ export default defineComponent({
     if (this.id) this.loadUser();
   },
   methods: {
-    validateField(field: keyof Errors): void {
-      switch (field) {
-        case "firstName":
-          if (!this.firstName.trim())
-            this.errors.firstName = "First name is required.";
-          else if (!/^[A-Za-z]+$/.test(this.firstName.trim()))
-            this.errors.firstName = "First name must contain only letters.";
-          else delete this.errors.firstName;
-          break;
-
-        case "lastName":
-          if (!this.lastName.trim())
-            this.errors.lastName = "Last name is required.";
-          else if (!/^[A-Za-z]+$/.test(this.lastName.trim()))
-            this.errors.lastName = "Last name must contain only letters.";
-          else delete this.errors.lastName;
-          break;
-
-        case "dob":
-          if (!this.dob) this.errors.dob = "DOB is required.";
-          else if (new Date(this.dob) > new Date())
-            this.errors.dob = "DOB cannot be in the future.";
-          else delete this.errors.dob;
-          break;
-
-        case "mobile":
-          if (!/^[0-9]{10}$/.test(this.mobile.trim()))
-            this.errors.mobile = "Valid 10-digit mobile required.";
-          else delete this.errors.mobile;
-          break;
-
-        case "address":
-          if (!this.address.trim())
-            this.errors.address = "Address is required.";
-          else if (this.address.trim().length < 5)
-            this.errors.address = "Address must be at least 5 characters.";
-          else delete this.errors.address;
-          break;
+   validateField(field: keyof Errors): void {
+  switch (field) {
+    case "firstName":
+      if (!this.firstName.trim()) {
+        this.errors.firstName = "First name is required.";
+      } else if (!/^[A-Za-z\s]+$/.test(this.firstName.trim())) {
+        this.errors.firstName = "First name must contain only letters.";
+      } else {
+        delete this.errors.firstName;
       }
-    },
+      break;
+
+    case "lastName":
+      if (!this.lastName.trim()) {
+        this.errors.lastName = "Last name is required.";
+      } else if (!/^[A-Za-z\s]+$/.test(this.lastName.trim())) {
+        this.errors.lastName = "Last name must contain only letters.";
+      } else {
+        delete this.errors.lastName;
+      }
+      break;
+
+    case "dob":
+      if (!this.dob) this.errors.dob = "DOB is required.";
+      else delete this.errors.dob;
+      break;
+
+    case "mobile":
+      if (!/^[0-9]{10}$/.test(this.mobile.trim())) {
+        this.errors.mobile = "Valid 10-digit mobile required.";
+      } else {
+        delete this.errors.mobile;
+      }
+      break;
+
+    case "address":
+      if (!this.address.trim()) {
+        this.errors.address = "Address is required.";
+      } else {
+        delete this.errors.address;
+      }
+      break;
+  }
+},
 
     validateForm(): boolean {
       this.validateField("firstName");
@@ -192,12 +186,9 @@ export default defineComponent({
       this.validateField("address");
       return Object.keys(this.errors).length === 0;
     },
-
     async loadUser(): Promise<void> {
       try {
-        const res = await axios.get<User>(
-          `http://localhost:3000/api/users/${this.id}`
-        );
+        const res = await axios.get<User>(`http://localhost:3000/api/users/${this.id}`);
         const user = res.data;
         this.firstName = user.first_name;
         this.lastName = user.last_name;
@@ -208,44 +199,31 @@ export default defineComponent({
         console.error("Error loading user:", err);
       }
     },
-
     async handleSubmit(): Promise<void> {
       if (this.validateForm()) {
         try {
-          const payload: UserPayload = {
-            First_Name: this.firstName.trim(),
-            Last_Name: this.lastName.trim(),
-            DOB: this.dob,
-            Mobile_Number: this.mobile.trim(),
-            Address: this.address.trim(),
+          const payload = {
+            first_name: this.firstName.trim(),
+            last_name: this.lastName.trim(),
+            dob: this.dob,
+            mobile_number: this.mobile.trim(),
+            address: this.address.trim(),
           };
 
           if (this.id) {
-            await axios.put(
-              `http://localhost:3000/api/users/update/${this.id}`,
-              payload
-            );
+            await axios.put(`http://localhost:3000/api/users/${this.id}`, payload);
             alert("User updated successfully!");
           } else {
-            await axios.post("http://localhost:3000/api/users/create", payload);
+            await axios.post("http://localhost:3000/api/users", payload);
             alert("User added successfully!");
           }
+
           this.$router.push("/users");
-          this.resetForm();
         } catch (err) {
           alert("Error processing request");
           console.error(err);
         }
       }
-    },
-
-    resetForm(): void {
-      this.firstName = "";
-      this.lastName = "";
-      this.dob = "";
-      this.mobile = "";
-      this.address = "";
-      this.errors = {};
     },
   },
 });
