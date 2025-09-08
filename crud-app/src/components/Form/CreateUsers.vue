@@ -171,7 +171,10 @@ export default defineComponent({
     case "address":
       if (!this.address.trim()) {
         this.errors.address = "Address is required.";
-      } else {
+      }else if (!/^[A-Za-z\s]+$/.test(this.address.trim())) {
+        this.errors.address = "First name must contain only letters.";
+      }
+       else {
         delete this.errors.address;
       }
       break;
