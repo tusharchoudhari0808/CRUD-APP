@@ -87,7 +87,7 @@
           type="submit"
           class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-8 py-3 rounded-lg shadow-lg transition transform hover:scale-105"
         >
-          {{ id ? "Update User" : "Add User" }}
+          {{ "Add User" }}
         </button>
       </div>
     </form>
@@ -106,14 +106,6 @@ interface Errors {
   address?: string;
 }
 
-interface User {
-  first_name: string;
-  last_name: string;
-  dob: string;
-  mobile_number: string;
-  address: string;
-}
-
 export default defineComponent({
   name: "CreateUsers",
   props: {
@@ -128,9 +120,6 @@ export default defineComponent({
       address: "" as string,
       errors: {} as Errors,
     };
-  },
-  mounted() {
-    if (this.id) this.loadUser();
   },
   methods: {
    validateField(field: keyof Errors): void {
@@ -189,19 +178,7 @@ export default defineComponent({
       this.validateField("address");
       return Object.keys(this.errors).length === 0;
     },
-    async loadUser(): Promise<void> {
-      try {
-        const res = await axios.get<User>(`http://localhost:3000/api/users/${this.id}`);
-        const user = res.data;
-        this.firstName = user.first_name;
-        this.lastName = user.last_name;
-        this.dob = user.dob.split("T")[0];
-        this.mobile = user.mobile_number;
-        this.address = user.address;
-      } catch (err) {
-        console.error("Error loading user:", err);
-      }
-    },
+  
     async handleSubmit(): Promise<void> {
       if (this.validateForm()) {
         try {
@@ -213,13 +190,9 @@ export default defineComponent({
             address: this.address.trim(),
           };
 
-          if (this.id) {
-            await axios.put(`http://localhost:3000/api/users/${this.id}`, payload);
-            alert("User updated successfully!");
-          } else {
-            await axios.post("http://localhost:3000/api/users", payload);
+            await axios.post("http://localhost:3000/api/users/", payload);
             alert("User added successfully!");
-          }
+          
 
           this.$router.push("/users");
         } catch (err) {

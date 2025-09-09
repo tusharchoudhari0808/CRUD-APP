@@ -5,9 +5,9 @@ export const success = (
   res: Response,
   data: any = {},
   message = "Success",
-  status = 200
+  statusCode:number = 200
 ) => {
-  return res.status(status).json({
+  return res.status(statusCode).json({
     success: true,
     data,
     message,
@@ -18,10 +18,10 @@ export const success = (
 export const error = (
   res: Response,
   message = "Internal Server Error",
-  status = 500,
+  statusCode:number = 500,
   details: any = null
 ) => {
-  return res.status(status).json({
+  return res.status(statusCode).json({
     success: false,
     message,
     error: details,

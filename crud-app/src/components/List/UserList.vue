@@ -158,8 +158,8 @@ export default defineComponent({
           }
         );
 
-        this.users = res.data.data.data || [];
-        this.totalPages = res.data.data.totalPages || 1;
+        this.users = res.data.data.data ;
+        this.totalPages = res.data.data.totalPages;
       } catch (err) {
         console.error("Error fetching users:", err);
       } finally {
