@@ -104,6 +104,14 @@ interface Errors {
   dob?: string;
   mobile?: string;
   address?: string;
+};
+
+interface UserPayload{
+  first_name:string;
+  last_name:string;
+  dob:string;
+  mobile_number:string;
+  address:string;
 }
 
 export default defineComponent({
@@ -161,7 +169,7 @@ export default defineComponent({
       if (!this.address.trim()) {
         this.errors.address = "Address is required.";
       }else if (!/^[A-Za-z\s]+$/.test(this.address.trim())) {
-        this.errors.address = "First name must contain only letters.";
+        this.errors.address = "Address must contain only letters.";
       }
        else {
         delete this.errors.address;
@@ -182,7 +190,7 @@ export default defineComponent({
     async handleSubmit(): Promise<void> {
       if (this.validateForm()) {
         try {
-          const payload = {
+          const payload:UserPayload = {
             first_name: this.firstName.trim(),
             last_name: this.lastName.trim(),
             dob: this.dob,

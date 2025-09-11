@@ -19,8 +19,8 @@ import { defineComponent } from 'vue';
 
 export default defineComponent({
   name: 'App',
-  components: {
-    // Add components here if needed
-  },
+  // components: {
+    
+  // },
 });
 </script>

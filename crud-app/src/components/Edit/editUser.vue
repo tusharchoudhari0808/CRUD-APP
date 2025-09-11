@@ -93,7 +93,7 @@ export default defineComponent({
   name: "EditUser",
   props: {
     id: {
-      type: String,
+      type: Number,
       required: true,
     },
   },

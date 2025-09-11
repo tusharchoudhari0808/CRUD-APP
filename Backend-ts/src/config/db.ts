@@ -1,9 +1,6 @@
-import { Pool } from "pg";
-import * as dotenv from "dotenv";
+import { Pool, types } from 'pg';
 
-
-dotenv.config();
-
+types.setTypeParser(1082, (val: string) => val);
 
 
 const userDB = new Pool({
@@ -14,7 +11,7 @@ const userDB = new Pool({
   port: Number(process.env.USER_PORT),
 });
 
-
+//connection..
 userDB.connect()
 .then(()=>{ console.log("DB is connect seccessfully "); })
 .catch((err)=>{ console.log("DB is Faildes",err); });

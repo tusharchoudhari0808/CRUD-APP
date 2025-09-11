@@ -126,7 +126,7 @@ export default defineComponent({
       users: [] as User[],
       searchName: "" as string,
       page: 1 as number,
-      limit: 10 as number,
+      limit: 7 as number,
       sortKey: "" as string,
       sortOrder: "ASC" as "ASC" | "DESC",
       totalPages: 1 as number,

@@ -14,6 +14,5 @@ export const validate =
       });
       return;
     }
-
     next();
   };
