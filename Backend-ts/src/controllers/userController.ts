@@ -7,7 +7,6 @@ import {
   UserRecord, 
   CreateUserBody, 
   UpdateUserBody, 
-  UserIdParam, 
   PaginationQuery, 
   PaginatedResult 
 } from "../Types/types";
@@ -54,7 +53,7 @@ export const getUsers = async (
 
 // Get User by ID
 export const getUserById = async (
-  req: Request<UserIdParam>, 
+  req: Request<{id:string}>, 
   res: Response
 ): Promise<void> => {
   const { id } = req.params;
@@ -79,7 +78,7 @@ export const getUserById = async (
 
 // Update User
 export const updateUser = async (
-  req: Request<UserIdParam, {}, UpdateUserBody>, 
+  req: Request<{id:string}, {}, UpdateUserBody>, 
   res: Response
 ): Promise<void> => {
   const { id } = req.params;
@@ -107,7 +106,7 @@ export const updateUser = async (
 
 // Delete User
 export const deleteUser = async (
-  req: Request<UserIdParam>, 
+  req: Request<{id:string}>, 
   res: Response
 ): Promise<void> => {
   const { id } = req.params;

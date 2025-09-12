@@ -17,11 +17,6 @@ export interface UserRecord extends User {
 export interface CreateUserBody extends User {}
 export interface UpdateUserBody extends User {}
 
-// Request params
-export interface UserIdParam {
-  id: string;
-}
-
 // Pagination query params
 export interface PaginationQuery {
   page?: string;
