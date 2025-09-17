@@ -1,3 +1,4 @@
+import { JwtPayload } from "jsonwebtoken";
 
 // Base User 
 export interface User {
@@ -8,12 +9,30 @@ export interface User {
   address: string;
 }
 
-// user_id
+//Admin types
+export interface Admin {
+  name: string;
+  email: string;
+  password: string;
+}
+
+export interface AdminLogin {
+  email: string;
+  password: string;
+}
+
+//  JWT Payload extends JsonWebToken's payload
+export interface jwtPayload extends JwtPayload {
+  adminId: number;
+  email: string;
+}
+
+// User record
 export interface UserRecord extends User {
   user_id: number;
 }
 
-// Request bodys
+// Request bodies
 export interface CreateUserBody extends User {}
 export interface UpdateUserBody extends User {}
 

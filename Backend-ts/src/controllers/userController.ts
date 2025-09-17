@@ -20,7 +20,7 @@ export const userCreate = async (
 
   try {
     const result = await userDB.query<UserRecord>(
-      `INSERT INTO users (first_name, last_name, dob, mobile_number, address)
+      `INSERT INTO users (first_name, last_name,dob, mobile_number, address)
        VALUES ($1, $2, $3, $4, $5) RETURNING *`,
       [first_name, last_name, dob, mobile_number, address]
     );
@@ -129,7 +129,10 @@ export const deleteUser = async (
   }
 };
 
-// Pagination + Search + Sort
+
+
+
+/// Pagination + Search + Sort
 export const paginateUsers = async (
   req: Request<{}, {}, {}, PaginationQuery>, 
   res: Response
@@ -147,6 +150,7 @@ export const paginateUsers = async (
   const sortOrder = order === "DESC" ? "DESC" : "ASC";
 
   try {
+    // Fetch users
     const result = await userDB.query<UserRecord>(
       `
       SELECT * FROM users
@@ -157,23 +161,25 @@ export const paginateUsers = async (
       [first_name ? `%${first_name}%` : null, limit, skip]
     );
 
+    // Count total matching users
     const countRes = await userDB.query<{ count: string }>(
       `SELECT COUNT(*) FROM users WHERE ($1::text IS NULL OR first_name ILIKE $1)`,
       [first_name ? `%${first_name}%` : null]
     );
 
-   const total = parseInt(countRes.rows[0]?.count ?? "0", 10);
+    const total = parseInt(countRes.rows[0]?.count ?? "0", 10);
 
-
+    // Send paginated response
     const response: PaginatedResult = {
       page,
       limit,
       total,
       totalPages: Math.ceil(total / limit),
-      data: result.rows,
+      data: result.rows, // array of users
     };
 
     success(res, response, "Users fetched successfully", 200);
+
   } catch (err) {
     console.error("Error fetching paginated users:", err);
     error(res, "Failed to fetch users", 500, err instanceof Error ? err.message : String(err));

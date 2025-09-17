@@ -1,8 +1,11 @@
 <template>
   <div class="max-w-4xl mx-auto p-8">
-    <h1 class="text-4xl font-extrabold mb-8 text-center text-blue-700 tracking-wide">
-      User Form
-    </h1>
+     <h2 class="text-4xl font-extrabold mb-8 text-center 
+         bg-gradient-to-r from-black to-blue-500 
+         bg-clip-text text-transparent tracking-wide"
+>
+Create New User
+</h2>
 
     <form
       @submit.prevent="handleSubmit"
@@ -96,7 +99,7 @@
 
 <script lang="ts">
 import { defineComponent } from "vue";
-import axios from "axios";
+import api from "../../axios";
 
 interface Errors {
   firstName?: string;
@@ -104,14 +107,14 @@ interface Errors {
   dob?: string;
   mobile?: string;
   address?: string;
-};
+}
 
-interface UserPayload{
-  first_name:string;
-  last_name:string;
-  dob:string;
-  mobile_number:string;
-  address:string;
+interface UserPayload {
+  first_name: string;
+  last_name: string;
+  dob: string;
+  mobile_number: string;
+  address: string;
 }
 
 export default defineComponent({
@@ -130,53 +133,36 @@ export default defineComponent({
     };
   },
   methods: {
-   validateField(field: keyof Errors): void {
-  switch (field) {
-    case "firstName":
-      if (!this.firstName.trim()) {
-        this.errors.firstName = "First name is required.";
-      } else if (!/^[A-Za-z\s]+$/.test(this.firstName.trim())) {
-        this.errors.firstName = "First name must contain only letters.";
-      } else {
-        delete this.errors.firstName;
-      }
-      break;
+    validateField(field: keyof Errors): void {
+      switch (field) {
+        case "firstName":
+          if (!this.firstName.trim()) this.errors.firstName = "First name is required.";
+          else if (!/^[A-Za-z\s]+$/.test(this.firstName.trim())) this.errors.firstName = "First name must contain only letters.";
+          else delete this.errors.firstName;
+          break;
 
-    case "lastName":
-      if (!this.lastName.trim()) {
-        this.errors.lastName = "Last name is required.";
-      } else if (!/^[A-Za-z\s]+$/.test(this.lastName.trim())) {
-        this.errors.lastName = "Last name must contain only letters.";
-      } else {
-        delete this.errors.lastName;
-      }
-      break;
+        case "lastName":
+          if (!this.lastName.trim()) this.errors.lastName = "Last name is required.";
+          else if (!/^[A-Za-z\s]+$/.test(this.lastName.trim())) this.errors.lastName = "Last name must contain only letters.";
+          else delete this.errors.lastName;
+          break;
 
-    case "dob":
-      if (!this.dob) this.errors.dob = "DOB is required.";
-      else delete this.errors.dob;
-      break;
+        case "dob":
+          if (!this.dob) this.errors.dob = "DOB is required.";
+          else delete this.errors.dob;
+          break;
 
-    case "mobile":
-      if (!/^[0-9]{10}$/.test(this.mobile.trim())) {
-        this.errors.mobile = "Valid 10-digit mobile required.";
-      } else {
-        delete this.errors.mobile;
-      }
-      break;
+        case "mobile":
+          if (!/^[0-9]{10}$/.test(this.mobile.trim())) this.errors.mobile = "Valid 10-digit mobile required.";
+          else delete this.errors.mobile;
+          break;
 
-    case "address":
-      if (!this.address.trim()) {
-        this.errors.address = "Address is required.";
-      }else if (!/^[A-Za-z\s]+$/.test(this.address.trim())) {
-        this.errors.address = "Address must contain only letters.";
+        case "address":
+          if (!this.address.trim()) this.errors.address = "Address is required.";
+          else delete this.errors.address; // allow more characters in address
+          break;
       }
-       else {
-        delete this.errors.address;
-      }
-      break;
-  }
-},
+    },
 
     validateForm(): boolean {
       this.validateField("firstName");
@@ -186,11 +172,11 @@ export default defineComponent({
       this.validateField("address");
       return Object.keys(this.errors).length === 0;
     },
-  
+
     async handleSubmit(): Promise<void> {
       if (this.validateForm()) {
         try {
-          const payload:UserPayload = {
+          const payload: UserPayload = {
             first_name: this.firstName.trim(),
             last_name: this.lastName.trim(),
             dob: this.dob,
@@ -198,10 +184,20 @@ export default defineComponent({
             address: this.address.trim(),
           };
 
-            await axios.post("http://localhost:3000/api/users/", payload);
-            alert("User added successfully!");
-          
+          const token = localStorage.getItem("token");
+          if (!token) {
+            alert("Unauthorized. Please login.");
+            this.$router.push("/login");
+            return;
+          }
 
+          await api.post("/users", payload, {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          });
+
+          alert("User added successfully!");
           this.$router.push("/users");
         } catch (err) {
           alert("Error processing request");

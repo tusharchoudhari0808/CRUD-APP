@@ -2,6 +2,8 @@
   <nav class="bg-gray-800 text-white p-4 flex gap-4">
     <router-link to="/users">User List</router-link>
     <router-link to="/create">Add User</router-link>
+    <router-link to="/login">Login</router-link>
+    
   </nav>
 
   <!-- Render routed components -->
