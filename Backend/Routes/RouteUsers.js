@@ -17,13 +17,10 @@ const validate = (schema) => (req, res, next) => {
 };
 
 // RESTful routes
-router.get("/All", UserController.getAllUsers);          // GET /users
-router.get("/:id", UserController.getUserById);       // GET /users/:id
-router.post("/create", validate(userSchema), UserController.createUser); // POST /users
-router.put("/update/:id", validate(userSchema), UserController.updateUser); // PUT /users/:id
-router.delete("/delete/:id", UserController.deleteUser);     // DELETE /users/:id
-
-// Pagination endpoint 
-router.get("/page/list", UserController.paginateUsers);
+router.get("/", UserController.paginateUsers);              
+router.get("/:id", UserController.getUserById);
+router.post("/", validate(userSchema), UserController.createUser);
+router.put("/:id", validate(userSchema), UserController.updateUser);
+router.delete("/:id", UserController.deleteUser);
 
 module.exports = router;

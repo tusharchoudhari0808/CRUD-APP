@@ -1,13 +1,11 @@
-const Joi = require('joi');
-
-// Validation schema for user creation
+const Joi = require("joi");
 
 const userSchema = Joi.object({
-    First_Name: Joi.string().min(3).max(30).required(),
-    Last_Name: Joi.string().min(3).max(30).required(),
-    DOB: Joi.date().required(),
-    Mobile_Number: Joi.string().length(10).pattern(/^[0-9]+$/).required(),
-    Address: Joi.string().max(255).required()
+  first_name: Joi.string().min(3).max(30).required(),
+  last_name: Joi.string().min(3).max(30).required(),
+  dob: Joi.date().required(),
+  mobile_number: Joi.string().length(10).pattern(/^[0-9]+$/).required(),
+  address: Joi.string().max(255).required(),
 });
 
 module.exports = userSchema;
