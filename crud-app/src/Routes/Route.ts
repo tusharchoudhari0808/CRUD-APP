@@ -5,7 +5,7 @@ import UserList from "../components/List/UserList.vue";
 import UserForm from "../components/Form/CreateUsers.vue";
 import EditUser from "../components/Edit/editUser.vue";
 import UserLogin from "../userAuth/Login/userLogin.vue";
-import UserRegister from "../userAuth/Register/userRegister.vue";
+//import UserRegister from "../userAuth/Register/userRegister.vue";
 
 const routes: Array<RouteRecordRaw> = [
   { path: "/", redirect: "/users" },
@@ -35,7 +35,7 @@ const routes: Array<RouteRecordRaw> = [
 
   // Public routes
   { path: "/login", name: "Login", component: UserLogin },
-  { path: "/register", name: "Register", component: UserRegister },
+  //{ path: "/register", name: "Register", component: UserRegister },
 
   { path: "/:pathMatch(.*)*", redirect: "/users" },
 ];

@@ -55,7 +55,8 @@
   "compilerOptions": {
     // File Layout
     "rootDir": "./src",
-    "outDir": "./dist",
+     "outDir": "./dist",
+
 
     // Environment Settings
     "target": "ES2020",

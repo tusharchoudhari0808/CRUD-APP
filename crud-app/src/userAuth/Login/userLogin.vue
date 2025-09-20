@@ -57,7 +57,7 @@
 
 <script lang="ts">
 import { defineComponent } from "vue";
-import api from "../../axios"; // ✅ use your axios instance with interceptor
+import api from "../../axios"; 
 
 interface Errors {
   email?: string;
@@ -119,13 +119,14 @@ export default defineComponent({
 
           const res = await api.post("/admin/login", payload);
 
-          // ✅ Extract token & admin (make sure backend returns this format)
-          const token = res.data?.data?.token;
-          const admin = res.data?.data?.admin;
+         
+          const token:string = res.data?.data?.token;
+          const admin:string = res.data?.data?.admin;
+          
 
           if (!token) throw new Error("Token not received from server");
 
-          // ✅ Save into localStorage
+          //  Save into localStorage
           localStorage.setItem("token", token);
           if (admin) {
             localStorage.setItem("admin", JSON.stringify(admin));

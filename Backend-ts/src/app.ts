@@ -4,7 +4,6 @@ import router from './router/userRouter'
 import adminRouter from './router/adminRouter'
 
 
-
 const app: Application = express();
 const port = process.env.PORT || 3000;
 

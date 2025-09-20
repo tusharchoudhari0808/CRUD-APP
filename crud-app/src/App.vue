@@ -1,28 +1,54 @@
 <template>
-  <nav class="bg-gray-800 text-white p-4 flex gap-4">
-    <router-link to="/users">User List</router-link>
-    <router-link to="/create">Add User</router-link>
-    <router-link to="/login">Login</router-link>
-    
+  <!-- Navbar -->
+  <nav class="bg-gray-800 text-white p-4 flex gap-6">
+    <router-link
+      to="/users"
+      class="hover:text-gray-300"
+      active-class="text-yellow-400"
+    >
+      User List
+    </router-link>
+    <router-link
+      to="/create"
+      class="hover:text-gray-300"
+      active-class="text-yellow-400"
+    >
+      Add User
+    </router-link>
+    <!-- Show Login only if not logged in -->
+    <router-link
+      v-if="!isLoggedIn"
+      to="/login"
+      class="hover:text-gray-300"
+      active-class="text-yellow-400"
+    >
+      Login
+    </router-link>
   </nav>
 
-  <!-- Render routed components -->
-  <router-view></router-view>
+  <!-- Routed pages -->
+  <main class="p-6">
+    <router-view />
+  </main>
 
-  <div class="flex justify-center mt-10 px-4 sm:px-6 lg:px-8">
-    <div>
-      <!-- Optional additional content -->
-    </div>
-  </div>
+ 
 </template>
 
-<script lang="ts">
-import { defineComponent } from 'vue';
+<script setup lang="ts">
+import { ref, onMounted } from "vue";
+import { isTokenExpired, autoLogoutAtExpiry } from "./utils/auth";
 
-export default defineComponent({
-  name: 'App',
-  // components: {
-    
-  // },
+const isLoggedIn = ref(false);
+
+onMounted(() => {
+  const token = localStorage.getItem("token");
+
+  if (!token || isTokenExpired(token)) {
+    localStorage.removeItem("token");
+    isLoggedIn.value = false;
+  } else {
+    isLoggedIn.value = true;
+    autoLogoutAtExpiry(token); 
+  }
 });
 </script>

@@ -72,7 +72,7 @@
 
 <script lang="ts">
 import { defineComponent } from "vue";
-import api from "../../axios"; // ✅ use interceptor instance
+import api from "../../axios"; //  use interceptor instance
 
 interface Errors {
   name?: string;
@@ -157,7 +157,7 @@ export default defineComponent({
         }
 
         alert("Registration successful!");
-        this.$router.push("/users"); // ✅ go directly to dashboard
+        this.$router.push("/users"); //  go directly to dashboard
       } catch (err: any) {
         console.error("Registration error:", err);
         alert(err.response?.data?.message || "Error processing request");

@@ -10,16 +10,22 @@ import { validate } from "../middlewares/validate";
 import { userSchema } from "../validation/userSchema";
 import { verifyToken } from "../middlewares/auth";
 
+import {AdminLogin} from "../validation/userSchema";
+
 const router = Router();
 
 // Public Route
-router.get("/", paginateUsers);  // anyone can view users (list, pagination, search, sort)
+router.get("/", paginateUsers);  
+
 
 // Protected Routes
 router.post("/", verifyToken, validate(userSchema), userCreate);
 router.get("/:id", verifyToken, getUserById);
 router.put("/:id", verifyToken, validate(userSchema), updateUser);
 router.delete("/:id", verifyToken, deleteUser);
+
+
+
 
 export default router;
 

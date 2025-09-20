@@ -5,7 +5,7 @@ const api = axios.create({
   headers: { "Content-Type": "application/json" },
 });
 
-// Request interceptor: attach token
+//  Request interceptor: attach JWT token
 api.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
     const token = localStorage.getItem("token");
@@ -18,13 +18,18 @@ api.interceptors.request.use(
   (error: AxiosError) => Promise.reject(error)
 );
 
-// Response interceptor: handle 401
+//  Response interceptor: handle expired/unauthorized tokens
 api.interceptors.response.use(
   (response) => response,
   (error: AxiosError) => {
     if (error.response?.status === 401) {
       localStorage.removeItem("token");
-      window.location.href = "/login"; // redirect user to login
+      alert("Session expired. Please login again.");
+      window.location.href = "/login";
+    } else if (error.response?.status === 403) {
+      localStorage.removeItem("token");
+      alert("Invalid token. Please login again.");
+      window.location.href = "/login";
     }
     return Promise.reject(error);
   }

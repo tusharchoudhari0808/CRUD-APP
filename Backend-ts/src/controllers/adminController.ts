@@ -3,43 +3,54 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import conn from "../config/db";
 import { success, error } from "../utils/response";
-import { Admin, AdminLogin, jwtPayload } from "../Types/types";
+import { AdminLogin, jwtPayload } from "../Types/types";
 
-// Ensure JWT secret is defined
+//  JWT secret is defined
 if (!process.env.JWT_SECRET) {
   throw new Error("JWT_SECRET environment variable is required");
 }
 const SECRET: string = process.env.JWT_SECRET;
 
 
- // createAdmin
+ // Create Admin 
+ 
 async function createAdmin(name: string, email: string, password: string) {
-  const saltRounds = parseInt(process.env.SALT_ROUNDS || "10", 10);
-  const hash = await bcrypt.hash(password, saltRounds);
+  try {
+    const SALT_ROUNDS = Number(process.env.SALT_ROUNDS) || 10;
+    const hash = await bcrypt.hash(password, SALT_ROUNDS);
 
-  // PostgreSQL uses $1, $2, $3 for parameters
-  const sql = `
-    INSERT INTO admin_user (name, email, password)
-    VALUES ($1, $2, $3)
-    RETURNING admin_id, name, email
-  `;
+    // check if admin already exists
+    const checkAdmin = await conn.query(
+      "SELECT email FROM admin_user WHERE email = $1",
+      [email]
+    );
+    if (checkAdmin.rows.length > 0) {
+      console.log(" Admin already exists with this email.");
+      return;
+    }
 
-  const result = await conn.query(sql, [name, email, hash]);
+    // Insert new admin
+    const sql = `
+      INSERT INTO admin_user (name, email, password)
+      VALUES ($1, $2, $3)
+      RETURNING admin_id, name, email
+    `;
+    const result = await conn.query(sql, [name, email, hash]);
 
-  console.log(" Admin created:", result.rows[0]);
+    console.log(" Admin created:", result.rows[0]);
+  } catch (err) {
+    console.error("Error in createAdmin:", err);
+    throw err; // so caller can decide how to handle
+  }
 }
 
-createAdmin(process.env.NAME!, process.env.EMAIL!, process.env.PASSWORD!).catch(console.error);
+
+if (process.env.NAME && process.env.EMAIL && process.env.PASSWORD) {
+  createAdmin(process.env.NAME, process.env.EMAIL, process.env.PASSWORD).catch(console.error);
+}
 
 
-
-
-
-
-
-
-
- //Admin Login
+ // Admin Login
  
 export const loginAdmin = async (req: Request<{}, {}, AdminLogin>, res: Response) => {
   const { email, password } = req.body;
@@ -47,7 +58,7 @@ export const loginAdmin = async (req: Request<{}, {}, AdminLogin>, res: Response
   try {
     // Check if admin exists
     const checkAdmin = await conn.query(
-      "SELECT * FROM admin_user WHERE email = $1",
+      "SELECT admin_id, name, email, password FROM admin_user WHERE email = $1",
       [email]
     );
 
@@ -69,11 +80,14 @@ export const loginAdmin = async (req: Request<{}, {}, AdminLogin>, res: Response
       email: admin.email,
     };
 
-    const token = jwt.sign(payload, SECRET, { expiresIn: "3h" });
+    const token = jwt.sign(payload, SECRET, { expiresIn: "1h" });
 
     return success(
       res,
-      { token, admin: { admin_id: admin.admin_id, name: admin.name, email: admin.email } },
+      {
+        token,
+        admin: { admin_id: admin.admin_id, name: admin.name, email: admin.email },
+      },
       "Login successful",
       200
     );
