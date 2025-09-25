@@ -19,7 +19,7 @@ export const error = (
   res: Response,
   message: string = "Internal Server Error",
   statusCode: number = 500,
-  details?: any
+  details?: unknown
 ) => {
   return res.status(statusCode).json({
     success: false,

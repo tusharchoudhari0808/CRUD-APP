@@ -1,43 +1,34 @@
 import { Request, Response, NextFunction } from "express";
 import jwt, { JwtPayload } from "jsonwebtoken";
-import { jwtPayload } from "../Types/types";
-
-const SECRET = process.env.JWT_SECRET as string;
+import { decryptToken } from "../utils/crypto";
 
 export interface AuthRequest extends Request {
-  user?: jwtPayload;
+  user?: string | JwtPayload;
 }
 
 export const verifyToken = (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
-    const authHeader = req.headers["authorization"];
-    const token = authHeader?.startsWith("Bearer ") ? authHeader.split(" ")[1] : null;
+    const encryptedToken = req.cookies?.token; // encrypted cookie
 
-    if (!token) {
-      return res.status(401).json({
-        success: false,
-        message: "No token provided",
-      });
+    if (!encryptedToken) {
+      return res.status(401).json({ success: false, message: "No token provided" });
     }
 
-    
-    const decoded = jwt.verify(token, SECRET) as jwtPayload & JwtPayload;
+    //  Decrypt token from cookie
+    const decrypted = decryptToken(encryptedToken);
 
-    req.user = decoded;
+    //  Verify JWT after decryption
+    const decoded = jwt.verify(decrypted, process.env.JWT_SECRET || "secret") as JwtPayload;
+
+    req.user = decoded; // attach decoded payload
     next();
-  } catch (err: any) {
-    console.error("Token verification failed:", err);
+  } catch (err) {
+    console.error("Token verification   error:", err);
 
-    if (err.name === "TokenExpiredError") {
-      return res.status(401).json({
-        success: false,
-        message: "Token has expired",
-      });
+    if (err instanceof jwt.TokenExpiredError) {
+      return res.status(401).json({ success: false, message: "Token has expired" });
     }
 
-    return res.status(403).json({
-      success: false,
-      message: "Invalid token",
-    });
+    return res.status(403).json({ success: false, message: "Invalid token" });
   }
 };

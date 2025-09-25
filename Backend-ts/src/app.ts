@@ -1,20 +1,27 @@
 import express, { Application } from "express";
-import cors from 'cors'
-import router from './router/userRouter'
-import adminRouter from './router/adminRouter'
-
+import cors from "cors";
+import cookieParser from "cookie-parser";
+import router from "./router/userRouter";
+import adminRouter from "./router/adminRouter";
 
 const app: Application = express();
-const port = process.env.PORT || 3000;
+const port = process.env.PORT;
 
-app.use(cors());
+//  Allow frontend to send cookies
+app.use(
+  cors({
+    origin: "http://localhost:5173",
+    credentials: true, //
+  })
+);
+
+app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-
-app.use('/api/users',router);
-app.use('/api/admin',adminRouter)
-
+// Routes
+app.use("/api/users", router);
+app.use("/api/admin", adminRouter);
 
 
 app.listen(port, () => {

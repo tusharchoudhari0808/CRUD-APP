@@ -1,12 +1,22 @@
+// routes/adminRoutes.ts
 import { Router } from "express";
-import { loginAdmin } from "../controllers/adminController";
+import { loginAdmin, logoutAdmin } from "../controllers/adminController";
 import { validate } from "../middlewares/validate";
-import {AdminLogin} from "../validation/userSchema";
-
+import { AdminLogin } from "../validation/userSchema";
+import { verifyToken, AuthRequest } from "../middlewares/auth";
 
 const router = Router();
 
-//router.post("/signup", validate(adminSchema),  signUpAdmin);
-router.post("/login", validate(AdminLogin),loginAdmin);
+// Login route (public)
+router.post("/login", validate(AdminLogin), loginAdmin);
+
+// Verify route (protected, checks cookie)
+router.get("/verify", verifyToken, (req: AuthRequest, res) => {
+  const admin = req.user; // decoded JWT payload from cookie
+  res.json({ admin });
+});
+
+// Logout route (clears token cookie)
+router.post("/logout", logoutAdmin);
 
 export default router;

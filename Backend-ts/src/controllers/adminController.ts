@@ -4,22 +4,21 @@ import jwt from "jsonwebtoken";
 import conn from "../config/db";
 import { success, error } from "../utils/response";
 import { AdminLogin, jwtPayload } from "../Types/types";
-
+import { encryptToken } from "../utils/crypto";
 //  JWT secret is defined
 if (!process.env.JWT_SECRET) {
   throw new Error("JWT_SECRET environment variable is required");
 }
 const SECRET: string = process.env.JWT_SECRET;
 
+// Create Admin
 
- // Create Admin 
- 
 async function createAdmin(name: string, email: string, password: string) {
   try {
     const SALT_ROUNDS = Number(process.env.SALT_ROUNDS) || 10;
     const hash = await bcrypt.hash(password, SALT_ROUNDS);
 
-    // check if admin already exists
+    // // check if admin already exists
     const checkAdmin = await conn.query(
       "SELECT email FROM admin_user WHERE email = $1",
       [email]
@@ -40,19 +39,22 @@ async function createAdmin(name: string, email: string, password: string) {
     console.log(" Admin created:", result.rows[0]);
   } catch (err) {
     console.error("Error in createAdmin:", err);
-    throw err; // so caller can decide how to handle
+    throw new Error("Failed to create admin");
   }
 }
 
-
 if (process.env.NAME && process.env.EMAIL && process.env.PASSWORD) {
-  createAdmin(process.env.NAME, process.env.EMAIL, process.env.PASSWORD).catch(console.error);
+  createAdmin(process.env.NAME, process.env.EMAIL, process.env.PASSWORD).catch(
+    console.error
+  );
 }
 
+// Admin Login
 
- // Admin Login
- 
-export const loginAdmin = async (req: Request<{}, {}, AdminLogin>, res: Response) => {
+export const loginAdmin = async (
+  req: Request<{}, {}, AdminLogin>,
+  res: Response
+) => {
   const { email, password } = req.body;
 
   try {
@@ -80,13 +82,29 @@ export const loginAdmin = async (req: Request<{}, {}, AdminLogin>, res: Response
       email: admin.email,
     };
 
+    // Sign JWT
     const token = jwt.sign(payload, SECRET, { expiresIn: "1h" });
+    
 
+    const encryptionToken = encryptToken(token);
+
+    // Set cookie (httpOnly prevents JS access)
+    res.cookie("token", encryptionToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production", // use HTTPS in prod
+      sameSite: "strict",
+      maxAge: 3600000, // 1 hour
+    });
+
+    //  Do NOT send token in body
     return success(
       res,
       {
-        token,
-        admin: { admin_id: admin.admin_id, name: admin.name, email: admin.email },
+        admin: {
+          admin_id: admin.admin_id,
+          name: admin.name,
+          email: admin.email,
+        },
       },
       "Login successful",
       200
@@ -94,5 +112,23 @@ export const loginAdmin = async (req: Request<{}, {}, AdminLogin>, res: Response
   } catch (err) {
     console.error("Error in loginAdmin:", err);
     return error(res, "Internal Server Error", 500);
+  }
+};
+
+
+///logout endpoint 
+
+export const logoutAdmin = async (req: Request, res: Response) => {
+  try {
+    res.clearCookie("token", {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+    });
+
+    return success(res, {}, "Logout successful", 200);
+  } catch (err) {
+    console.error("Error in logoutAdmin:", err);
+    return res.status(500).json({ message: "Internal Server Error" });
   }
 };

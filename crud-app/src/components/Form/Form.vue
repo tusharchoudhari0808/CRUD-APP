@@ -197,10 +197,16 @@ const date = new Date(user.dob);
         try {
           await axios.delete(`http://localhost:3000/api/users/delete/${id}`);
           alert("User deleted successfully!");
+          Swal.fire({
+  title: "Good job!",
+  text: "You clicked the button!",
+  icon: "success"
+});
           this.getUsers();
           this.resetForm();
         } catch (err) {
           alert("Failed to delete user.");
+
           console.error(err);
         }
       }

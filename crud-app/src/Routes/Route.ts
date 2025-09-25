@@ -1,24 +1,23 @@
 import { createRouter, createWebHistory, RouteRecordRaw } from "vue-router";
+import api from "../axios";
 
 // Components
 import UserList from "../components/List/UserList.vue";
 import UserForm from "../components/Form/CreateUsers.vue";
 import EditUser from "../components/Edit/editUser.vue";
 import UserLogin from "../userAuth/Login/userLogin.vue";
-//import UserRegister from "../userAuth/Register/userRegister.vue";
+//import Logout from "../userAuth/Logout.vue";
 
 const routes: Array<RouteRecordRaw> = [
-  { path: "/", redirect: "/users" },
+  { path: "/", redirect: "/login" },
 
-  // Public route → users list always accessible
+  // Protected routes
   {
     path: "/users",
     name: "UserList",
     component: UserList,
-    meta: { requiresAuth: false }, 
+    meta: { requiresAuth: true },
   },
-
-  // Protected routes
   {
     path: "/create",
     name: "CreateUser",
@@ -33,87 +32,50 @@ const routes: Array<RouteRecordRaw> = [
     meta: { requiresAuth: true },
   },
 
-  // Public routes
+//  {
+//   path: "/logout",
+//   name: "Logout",
+//   component: Logout,
+//   meta: { requiresAuth: true }
+// },
+
+
+  
+
+  // Public route
   { path: "/login", name: "Login", component: UserLogin },
-  //{ path: "/register", name: "Register", component: UserRegister },
 
   { path: "/:pathMatch(.*)*", redirect: "/users" },
 ];
 
- const router = createRouter({
+const router = createRouter({
   history: createWebHistory(),
-     routes,
- });
-
-router.beforeEach((to, from, next) => {
-  const token = localStorage.getItem("token");
-  const requiresAuth = to.meta.requiresAuth as boolean;
-
-  if (requiresAuth && !token) {
-    // not logged in but trying to access protected route
-    next("/login");
-  } else {
-    next();
-  }
+  routes,
 });
 
+// Router guard
+router.beforeEach(async (to, from, next) => {
+  const requiresAuth = to.meta.requiresAuth as boolean;
 
-
-
-
-
-
-
-// Define routes
-// const routes: Array<RouteRecordRaw> = [
-//   { path: "/", redirect: "/users" },
-
-//   // Protected routes
-//   {
-//     path: "/users",
-//     name: "UserList",
-//     component: UserList,
-//     meta: { requiresAuth: true },
-//   },
-//   {
-//     path: "/create",
-//     name: "CreateUser",
-//     component: UserForm,
-//     meta: { requiresAuth: true },
-//   },
-//   {
-//     path: "/users/:id/edit",
-//     name: "EditUser",
-//     component: EditUser,
-//     props: (route) => ({ id: Number(route.params.id) }),
-//     meta: { requiresAuth: true },
-//   },
-
-//   // Public routes
-//   { path: "/login", name: "Login", component: UserLogin },
-//   { path: "/register", name: "Register", component: UserRegister },
-
-//   // Catch-all route (404)
-//   { path: "/:pathMatch(.*)*", redirect: "/login" },
-// ];
-
-// const router = createRouter({
-//   history: createWebHistory(),
-//   routes,
-// });
-
-// // Global navigation guard
-// router.beforeEach((to, from, next) => {
-//   const token = localStorage.getItem("token");
-//   const requiresAuth = (to.meta as any).requiresAuth as boolean; // cast to boolean
-
-//   if (requiresAuth && !token) {
-//     next("/login"); // redirect if not logged in
-//   } else if ((to.path === "/login" || to.path === "/register") && token) {
-//     next("/users"); // prevent going back to login/register when already logged in
-//   } else {
-//     next();
-//   }
-// });
+  if (requiresAuth) {
+    // Protected route: check cookie by hitting backend
+    try {
+      await api.get("/users", { withCredentials: true });
+      return next();
+    } catch {
+      return next("/login");
+    }
+  } else if (to.path === "/login") {
+    // Login page: if already logged in, redirect to /users
+    try {
+      await api.get("/users", { withCredentials: true });
+      return next("/users");
+    } catch {
+      return next(); // Not logged in, allow login
+    }
+  } else {
+    return next(); // Public route
+  }
+});
 
 export default router;
