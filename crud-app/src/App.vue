@@ -1,33 +1,54 @@
 <template>
-<!-- 
-  <h1 class="text-black text-center mt-20 font-extrabold text-5xl tracking-wide drop-shadow-lg">
-    CRUD Application
-  </h1> -->
-
- <nav class="bg-gray-800 text-white p-4 flex gap-4">
-    <router-link to="/users">User List</router-link>
-    <router-link to="/create">Add User</router-link>
+  <!-- Navbar -->
+  <nav class="bg-gray-800 text-white p-4 flex gap-6">
+    <router-link
+      to="/users"
+      class="hover:text-gray-300"
+      active-class="text-yellow-400"
+    >
+      User List
+    </router-link>
+    <router-link
+      to="/create"
+      class="hover:text-gray-300"
+      active-class="text-yellow-400"
+    >
+      Add User
+    </router-link>
+    <!-- Show Login only if not logged in -->
+    <router-link
+      v-if="!isLoggedIn"
+      to="/login"
+      class="hover:text-gray-300"
+      active-class="text-yellow-400"
+    >
+      Login
+    </router-link>
   </nav>
-  <router-view></router-view>
-  
 
-  <div class="flex justify-center mt-10 px-4 sm:px-6 lg:px-8">
-    <div >
-      
-      <Form />
-    </div>
-  </div>
+  <!-- Routed pages -->
+  <main class="p-6">
+    <router-view />
+  </main>
+
+ 
 </template>
 
-<script>
-//import Form from './components/Form/Form.vue'
-//import ListUserData from './components/List/ListUserData.vue'
+<script setup lang="ts">
+import { ref, onMounted } from "vue";
+import { isTokenExpired, autoLogoutAtExpiry } from "./utils/auth";
 
-export default {
-  name: 'App',
-  components: {
-   // Form
-   // ListUserData,
-  },
-}
+const isLoggedIn = ref(false);
+
+onMounted(() => {
+  const token = localStorage.getItem("token");
+
+  if (!token || isTokenExpired(token)) {
+    localStorage.removeItem("token");
+    isLoggedIn.value = false;
+  } else {
+    isLoggedIn.value = true;
+    autoLogoutAtExpiry(token); 
+  }
+});
 </script>
