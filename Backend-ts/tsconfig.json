@@ -72,6 +72,11 @@
     "noUncheckedIndexedAccess": true,
     "exactOptionalPropertyTypes": true,
 
+   
+   
+   
+  
+
     // Recommended Options
     "strict": true,
     "jsx": "react-jsx",
@@ -83,6 +88,7 @@
 
     //  FIX: allow default import for express, cors, dotenv
     "esModuleInterop": true,
+     "resolveJsonModule": true,
     "allowSyntheticDefaultImports": true
   }
 }

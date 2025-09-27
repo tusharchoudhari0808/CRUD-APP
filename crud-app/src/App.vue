@@ -2,7 +2,7 @@
   <nav class="bg-gray-900 text-white p-4 flex gap-6 sm:gap-8 justify-center sm:justify-start shadow-lg">
     <!-- Protected links -->
     <router-link
-      v-if="isLoggedIn"
+      v-if="isLoggedIn "
       to="/users"
       class="text-lg font-semibold hover:text-blue-400 transition"
       active-class="text-teal-400"
@@ -11,7 +11,7 @@
     </router-link>
 
     <router-link
-      v-if="isLoggedIn"
+     v-if="isLoggedIn && isRole === 'superAdmin'"
       to="/create"
       class="text-lg font-semibold hover:text-blue-400 transition"
       active-class="text-teal-400"
@@ -40,15 +40,17 @@ import { ref, onMounted } from "vue";
 import api from "./axios";
 
 const isLoggedIn = ref(false);
-
+const isRole = ref<string>("");
 // Check login status via backend cookie
 async function checkLogin() {
   try {
     // Call the verify route to check if cookie is valid
     const res = await api.get("/admin/verify", { withCredentials: true });
-    isLoggedIn.value = !!res.data?.admin; // true if admin info exists
+    isLoggedIn.value = !!res.data?.admin;
+    isRole.value = res.data.admin.role;
   } catch {
-    isLoggedIn.value = false; // cookie invalid or not logged in
+    isLoggedIn.value = false; 
+    isRole.value = ("");
   }
 }
 

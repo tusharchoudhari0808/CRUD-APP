@@ -6,12 +6,11 @@ import UserList from "../components/List/UserList.vue";
 import UserForm from "../components/Form/CreateUsers.vue";
 import EditUser from "../components/Edit/editUser.vue";
 import UserLogin from "../userAuth/Login/userLogin.vue";
-//import Logout from "../userAuth/Logout.vue";
 
 const routes: Array<RouteRecordRaw> = [
   { path: "/", redirect: "/login" },
 
-  // Protected routes
+  // Protected routes 
   {
     path: "/users",
     name: "UserList",
@@ -32,16 +31,6 @@ const routes: Array<RouteRecordRaw> = [
     meta: { requiresAuth: true },
   },
 
-//  {
-//   path: "/logout",
-//   name: "Logout",
-//   component: Logout,
-//   meta: { requiresAuth: true }
-// },
-
-
-  
-
   // Public route
   { path: "/login", name: "Login", component: UserLogin },
 
@@ -53,28 +42,26 @@ const router = createRouter({
   routes,
 });
 
-// Router guard
+// Router guard 
 router.beforeEach(async (to, from, next) => {
   const requiresAuth = to.meta.requiresAuth as boolean;
 
   if (requiresAuth) {
-    // Protected route: check cookie by hitting backend
     try {
-      await api.get("/users", { withCredentials: true });
+      await api.get("/admin/verify", { withCredentials: true });
       return next();
     } catch {
       return next("/login");
     }
   } else if (to.path === "/login") {
-    // Login page: if already logged in, redirect to /users
     try {
-      await api.get("/users", { withCredentials: true });
+      await api.get("/admin/verify", { withCredentials: true });
       return next("/users");
     } catch {
-      return next(); // Not logged in, allow login
+      return next();
     }
   } else {
-    return next(); // Public route
+    return next();
   }
 });
 

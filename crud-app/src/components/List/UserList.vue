@@ -1,26 +1,12 @@
 <template>
-  <div
-    class="min-h-screen bg-gradient-to-br from-gray-200 to-blue-50 p-8 sm:p-12"
-  >
-    <div
-      class="max-w-7xl mx-auto bg-white shadow-2xl rounded-3xl p-6 sm:p-10 transform transition duration-500 hover:scale-[1.005] hover:shadow-3xl"
-    >
+  <div class="min-h-screen bg-gradient-to-br from-gray-200 to-blue-50 p-8 sm:p-12">
+    <div class="max-w-7xl mx-auto bg-white shadow-2xl rounded-3xl p-6 sm:p-10 transform transition duration-500 hover:scale-[1.005] hover:shadow-3xl">
+      
       <!-- Header -->
-      <div
-        class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4"
-      >
-        <h2
-          class="text-4xl sm:text-5xl font-extrabold mb-2 text-center bg-gradient-to-r from-gray-900 to-blue-600 bg-clip-text text-transparent tracking-wide drop-shadow-lg animate-pulse-slow"
-        >
+      <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
+        <h2 class="text-4xl sm:text-5xl font-extrabold mb-2 text-center bg-gradient-to-r from-gray-900 to-blue-600 bg-clip-text text-transparent tracking-wide drop-shadow-lg animate-pulse-slow">
           User List
         </h2>
-        <!-- <button
-          v-if="isLoggedIn"
-          @click="logoutAdmin"
-          class="bg-red-600 hover:bg-red-700 text-white font-semibold px-6 py-3 rounded-xl shadow-md transition-all duration-300 transform hover:scale-105 hover:shadow-xl"
-        >
-          Logout
-        </button> -->
 
         <button
           v-if="isLoggedIn"
@@ -32,11 +18,9 @@
       </div>
 
       <!-- Search + Sort -->
-      <div
-        class="flex flex-col sm:flex-row justify-between items-center mb-8 gap-4"
-      >
+      <div class="flex flex-col sm:flex-row justify-between items-center mb-8 gap-4">
         <router-link
-          v-if="isLoggedIn"
+          v-if="isLoggedIn && isRole === 'superAdmin'"
           to="/create"
           class="w-full sm:w-auto text-center bg-blue-600 hover:bg-blue-700 text-white font-semibold px-8 py-3 rounded-xl shadow-lg transition-all duration-300 transform hover:-translate-y-1 hover:shadow-xl"
         >
@@ -74,20 +58,14 @@
       <!-- Loader -->
       <div v-if="loading" class="flex justify-center items-center h-40">
         <div class="relative w-16 h-16">
-          <div
-            class="absolute inset-0 border-4 border-dashed rounded-full border-blue-500 animate-spin"
-          ></div>
-          <div
-            class="absolute inset-2 border-4 border-solid rounded-full border-blue-300 animate-spin-reverse"
-          ></div>
+          <div class="absolute inset-0 border-4 border-dashed rounded-full border-blue-500 animate-spin"></div>
+          <div class="absolute inset-2 border-4 border-solid rounded-full border-blue-300 animate-spin-reverse"></div>
         </div>
       </div>
 
       <!-- User Table -->
       <div v-if="tableVisible" class="overflow-x-auto no-scrollbar">
-        <table
-          class="min-w-full bg-white rounded-3xl overflow-hidden shadow-lg transform transition-transform duration-300 hover:scale-[1.005]"
-        >
+        <table class="min-w-full bg-white rounded-3xl overflow-hidden shadow-lg transform transition-transform duration-300 hover:scale-[1.005]">
           <thead class="bg-gray-900 text-white">
             <tr>
               <th class="p-4 text-left font-semibold">ID</th>
@@ -110,28 +88,22 @@
               }"
             >
               <td class="p-4 border-t border-gray-200">{{ user.user_id }}</td>
-              <td class="p-4 border-t border-gray-200">
-                {{ user.first_name }}
-              </td>
+              <td class="p-4 border-t border-gray-200">{{ user.first_name }}</td>
               <td class="p-4 border-t border-gray-200">{{ user.last_name }}</td>
-              <td class="p-4 border-t border-gray-200">
-                {{ formatDate(user.dob) }}
-              </td>
-              <td class="p-4 border-t border-gray-200">
-                {{ user.mobile_number }}
-              </td>
+              <td class="p-4 border-t border-gray-200">{{ formatDate(user.dob) }}</td>
+              <td class="p-4 border-t border-gray-200">{{ user.mobile_number }}</td>
               <td class="p-4 border-t border-gray-200">{{ user.address }}</td>
               <td class="p-4 border-t border-gray-200">
                 <div class="flex justify-center gap-3">
                   <button
-                    v-if="isLoggedIn"
+                    v-if="isLoggedIn && ['superAdmin', 'Admin'].includes(isRole)"
                     class="bg-yellow-500 hover:bg-yellow-600 text-white px-5 py-2 rounded-lg shadow-md transition-all duration-300 transform hover:scale-110"
                     @click="editUser(user)"
                   >
                     Edit
                   </button>
                   <button
-                    v-if="isLoggedIn"
+                    v-if="isLoggedIn && isRole === 'superAdmin'"
                     class="bg-red-500 hover:bg-red-600 text-white px-5 py-2 rounded-lg shadow-md transition-all duration-300 transform hover:scale-110"
                     @click="deleteUser(user.user_id)"
                   >
@@ -153,9 +125,9 @@
         >
           Prev
         </button>
-        <span class="text-gray-600 font-medium text-lg"
-          >Page {{ page }} of {{ totalPages }}</span
-        >
+        <span class="text-gray-600 font-medium text-lg">
+          Page {{ page }} of {{ totalPages }}
+        </span>
         <button
           @click="nextPage"
           :disabled="page === totalPages"
@@ -204,6 +176,7 @@ export default defineComponent({
     const sortKey = ref("");
     const sortOrder = ref<"ASC" | "DESC">("ASC");
     const isLoggedIn = ref(false);
+    const isRole = ref<string>("");
 
     const tableVisible = computed(() => users.value.length > 0);
 
@@ -211,8 +184,10 @@ export default defineComponent({
       try {
         const res = await api.get("/admin/verify", { withCredentials: true });
         isLoggedIn.value = !!res.data?.admin;
+        isRole.value = res.data.admin.role;
       } catch {
         isLoggedIn.value = false;
+        isRole.value = "";
       }
     };
 
@@ -240,16 +215,6 @@ export default defineComponent({
         loading.value = false;
       }
     };
-
-    // const logoutAdmin = async () => {
-    // //   try {
-    // //     await api.post("/admin/logout", {}, { withCredentials: true });
-    // //   } catch (err) {
-    // //     console.warn("Logout failed (maybe no active session).");
-    // //   }
-    // //   isLoggedIn.value = false;
-    // //   router.push("/login");
-    // // };
 
     const logoutAdmin = async () => {
       try {
@@ -303,14 +268,13 @@ export default defineComponent({
       dateStr ? new Date(dateStr).toLocaleDateString("en-CA") : "";
 
     onMounted(async () => {
-  await checkLogin();
-  if (!isLoggedIn.value) {
-    router.push("/login");
-  } else {
-    fetchUsers();
-  }
-});
-
+      await checkLogin();
+      if (!isLoggedIn.value) {
+        router.push("/login");
+      } else {
+        fetchUsers();
+      }
+    });
 
     return {
       users,
@@ -322,6 +286,7 @@ export default defineComponent({
       sortKey,
       sortOrder,
       isLoggedIn,
+      isRole,
       tableVisible,
       fetchUsers,
       handleSearch,

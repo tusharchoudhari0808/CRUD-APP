@@ -12,41 +12,52 @@ if (!process.env.JWT_SECRET) {
 const SECRET: string = process.env.JWT_SECRET;
 
 // Create Admin
-
-async function createAdmin(name: string, email: string, password: string) {
+async function createAdmin(
+  name: string,
+  email: string,
+  password: string,
+  role: string
+) {
   try {
     const SALT_ROUNDS = Number(process.env.SALT_ROUNDS) || 10;
     const hash = await bcrypt.hash(password, SALT_ROUNDS);
 
-    // // check if admin already exists
+    // check if admin already exists
     const checkAdmin = await conn.query(
       "SELECT email FROM admin_user WHERE email = $1",
       [email]
     );
     if (checkAdmin.rows.length > 0) {
-      console.log(" Admin already exists with this email.");
+      console.log("Admin already exists with this email.");
       return;
     }
 
     // Insert new admin
     const sql = `
-      INSERT INTO admin_user (name, email, password)
-      VALUES ($1, $2, $3)
-      RETURNING admin_id, name, email
+      INSERT INTO admin_user (name, email, password, role)
+      VALUES ($1, $2, $3, $4)
+      RETURNING admin_id, name, email, role
     `;
-    const result = await conn.query(sql, [name, email, hash]);
+    const result = await conn.query(sql, [name, email, hash, role]);
 
-    console.log(" Admin created:", result.rows[0]);
+    console.log("Admin created:", result.rows[0]);
   } catch (err) {
     console.error("Error in createAdmin:", err);
     throw new Error("Failed to create admin");
   }
 }
-
-if (process.env.NAME && process.env.EMAIL && process.env.PASSWORD) {
-  createAdmin(process.env.NAME, process.env.EMAIL, process.env.PASSWORD).catch(
-    console.error
-  );
+if (
+  process.env.NAME &&
+  process.env.EMAIL &&
+  process.env.PASSWORD &&
+  process.env.ROLE
+) {
+  createAdmin(
+    process.env.NAME,
+    process.env.EMAIL,
+    process.env.PASSWORD,
+    process.env.ROLE
+  ).catch(console.error);
 }
 
 // Admin Login
@@ -60,7 +71,7 @@ export const loginAdmin = async (
   try {
     // Check if admin exists
     const checkAdmin = await conn.query(
-      "SELECT admin_id, name, email, password FROM admin_user WHERE email = $1",
+      "SELECT admin_id, name, email, password, role FROM admin_user WHERE email = $1",
       [email]
     );
 
@@ -80,15 +91,15 @@ export const loginAdmin = async (
     const payload: jwtPayload = {
       adminId: admin.admin_id,
       email: admin.email,
+      role: admin.role, 
     };
 
     // Sign JWT
     const token = jwt.sign(payload, SECRET, { expiresIn: "1h" });
-    
 
     const encryptionToken = encryptToken(token);
 
-    // Set cookie (httpOnly prevents JS access)
+    // Set cookie 
     res.cookie("token", encryptionToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production", // use HTTPS in prod
@@ -115,8 +126,7 @@ export const loginAdmin = async (
   }
 };
 
-
-///logout endpoint 
+///logout endpoint
 
 export const logoutAdmin = async (req: Request, res: Response) => {
   try {

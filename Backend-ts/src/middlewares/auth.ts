@@ -1,34 +1,29 @@
-import { Request, Response, NextFunction } from "express";
+import { Response, NextFunction } from "express";
 import jwt, { JwtPayload } from "jsonwebtoken";
 import { decryptToken } from "../utils/crypto";
+import { AuthRequest } from "../Types/types";
 
-export interface AuthRequest extends Request {
-  user?: string | JwtPayload;
-}
+const SECRET = process.env.JWT_SECRET!;
 
-export const verifyToken = (req: AuthRequest, res: Response, next: NextFunction) => {
+export const verifyToken = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
-    const encryptedToken = req.cookies?.token; // encrypted cookie
+    const encryptionToken = req.cookies?.token;
+    if (!encryptionToken) return res.status(401).json({ message: "No token provided" });
 
-    if (!encryptedToken) {
-      return res.status(401).json({ success: false, message: "No token provided" });
-    }
+    // Decrypt + verify
+    const decrypted = decryptToken(encryptionToken);
+    const decoded = jwt.verify(decrypted, SECRET) as JwtPayload;
 
-    //  Decrypt token from cookie
-    const decrypted = decryptToken(encryptedToken);
 
-    //  Verify JWT after decryption
-    const decoded = jwt.verify(decrypted, process.env.JWT_SECRET || "secret") as JwtPayload;
-
-    req.user = decoded; // attach decoded payload
+    // Attach user info
+    req.user = {
+      id: decoded.adminId,
+      email: decoded.email,
+      role: decoded.role, 
+    };
     next();
   } catch (err) {
-    console.error("Token verification   error:", err);
-
-    if (err instanceof jwt.TokenExpiredError) {
-      return res.status(401).json({ success: false, message: "Token has expired" });
-    }
-
-    return res.status(403).json({ success: false, message: "Invalid token" });
+    console.error("Token verification failed:", err);
+    return res.status(401).json({ message: "Invalid or expired token" });
   }
 };
