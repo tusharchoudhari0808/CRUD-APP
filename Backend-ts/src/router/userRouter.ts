@@ -1,31 +1,27 @@
+// routes/userRoutes.ts
 import { Router } from "express";
-import {
-  userCreate,
-  getUserById,
-  updateUser,
-  deleteUser,
-  paginateUsers,
-} from "../controllers/userController";
+import { verifyToken } from "../middlewares/auth";
+import authorisePermission from "../middlewares/authRole";
+import { userCreate, getUserById, updateUser, deleteUser, paginateUsers } from "../controllers/userController";
 import { validate } from "../middlewares/validate";
 import { userSchema } from "../validation/userSchema";
-import { verifyToken } from "../middlewares/auth";
-
-import {AdminLogin} from "../validation/userSchema";
 
 const router = Router();
 
-// Public Route
-router.get("/", paginateUsers);  
+// Any role with get_users permission
+router.get("/", verifyToken, authorisePermission("get_users"), paginateUsers);
 
+// Only roles with create_users permission 
+router.post("/", verifyToken, authorisePermission("create_users"), validate(userSchema), userCreate);
 
-// Protected Routes
-router.post("/", verifyToken, validate(userSchema), userCreate);
-router.get("/:id", verifyToken, getUserById);
-router.put("/:id", verifyToken, validate(userSchema), updateUser);
-router.delete("/:id", verifyToken, deleteUser);
+// Admin and  superAdmin get_users
+router.get("/:id", verifyToken, authorisePermission("get_users"), getUserById);
 
+// Admin and  superAdmin  update_users
+router.put("/:id", verifyToken, authorisePermission("update_users"), validate(userSchema), updateUser);
 
-
+// Only superAdmin delete_users
+router.delete("/:id", verifyToken, authorisePermission("delete_users"), deleteUser);
 
 export default router;
 
@@ -46,70 +42,28 @@ export default router;
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 // import { Router } from "express";
-// import {
-//   userCreate,
-//   getUserById,
-//   updateUser,
-//   deleteUser,
-//   paginateUsers,
-// } from "../controllers/userController";
+// import { verifyToken } from "../middlewares/auth";
+// import authoriseRole from "../middlewares/authRole";
+// import { userCreate, getUserById, updateUser, deleteUser, paginateUsers } from "../controllers/userController";
 // import { validate } from "../middlewares/validate";
 // import { userSchema } from "../validation/userSchema";
-// import { verifyToken } from "../middlewares/auth"; 
 
 // const router = Router();
 
-// // CRUD Routes
+// router.get("/", verifyToken, authoriseRole("User", "Admin", "superAdmin"), paginateUsers);
+// //  Any logged-in User, Admin, or superAdmin can see paginated users
 
-// // Create user (protected + validated)
-// router.post("/", verifyToken, validate(userSchema), userCreate);
+// router.post("/", verifyToken, authoriseRole("superAdmin"), validate(userSchema), userCreate);
+// //  Only superAdmin can create users
 
-// // Pagination, search, sort (protected)
-// router.get("/", verifyToken, paginateUsers);
+// router.get("/:id", verifyToken, authoriseRole("Admin", "superAdmin"), getUserById);
+// //  Admin + superAdmin can fetch specific user
 
-// // Get user by ID (protected)
-// router.get("/:id", verifyToken, getUserById);
+// router.put("/:id", verifyToken, authoriseRole("Admin", "superAdmin"), validate(userSchema), updateUser);
+// //  Admin + superAdmin can update users
 
-// // Update user by ID (protected + validated)
-// router.put("/:id", verifyToken, validate(userSchema), updateUser);
-
-// // Delete user by ID (protected)
-// router.delete("/:id", verifyToken, deleteUser);
+// router.delete("/:id", verifyToken, authoriseRole("superAdmin"), deleteUser);
+// //  Only superAdmin can delete users
 
 // export default router;

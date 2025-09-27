@@ -1,0 +1,32 @@
+{
+    "roles":[
+        {
+            "name":"superAdmin",
+            "permissions":[
+                "get_users",
+                "create_users",
+                "edite_users",
+                "update_users",
+                "delete_users"
+            ]
+        },
+         {
+            "name":"Admin",
+            "permissions":[
+                "edite_users",
+                "update_users",
+                "get_users"
+
+
+            ]
+        },
+         {
+            "name":"User",
+            "permissions":[
+                "get_users"
+
+            ]
+        }
+
+    ]
+}

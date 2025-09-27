@@ -1,4 +1,3 @@
-// src/controllers/userController.ts
 import { Request, Response } from "express";
 import userDB from "../config/db";
 import { success, error } from "../utils/response";

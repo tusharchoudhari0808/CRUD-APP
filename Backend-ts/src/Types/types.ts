@@ -1,4 +1,6 @@
 import { JwtPayload } from "jsonwebtoken";
+import { Request } from "express";
+
 
 // Base User 
 export interface User {
@@ -25,7 +27,9 @@ export interface AdminLogin {
 export interface jwtPayload extends JwtPayload {
   adminId: number;
   email: string;
+  role: string;
 }
+
 
 // User record
 export interface UserRecord extends User {
@@ -52,4 +56,13 @@ export interface PaginatedResult {
   total: number;
   totalPages: number;
   data: UserRecord[];
+}
+
+
+export interface AuthRequest extends Request {
+  user?: {
+    id: number;       // match jwtPayload.adminId
+    email?: string;
+    role: string;
+  };
 }
