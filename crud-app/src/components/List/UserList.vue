@@ -2,12 +2,14 @@
   <div class="min-h-screen bg-gradient-to-br from-gray-200 to-blue-50 p-8 sm:p-12">
     <div class="max-w-7xl mx-auto bg-white shadow-2xl rounded-3xl p-6 sm:p-10 transform transition duration-500 hover:scale-[1.005] hover:shadow-3xl">
       
-      <!-- Header -->
+      <!-- ================= Header Section ================= -->
       <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
+        <!-- Page Title -->
         <h2 class="text-4xl sm:text-5xl font-extrabold mb-2 text-center bg-gradient-to-r from-gray-900 to-blue-600 bg-clip-text text-transparent tracking-wide drop-shadow-lg animate-pulse-slow">
           User List
         </h2>
 
+        <!-- Logout Button (Visible if logged in) -->
         <button
           v-if="isLoggedIn"
           @click="logoutAdmin"
@@ -17,17 +19,20 @@
         </button>
       </div>
 
-      <!-- Search + Sort -->
+      <!-- ================= Search + Sort Section ================= -->
       <div class="flex flex-col sm:flex-row justify-between items-center mb-8 gap-4">
+        <!-- Add New User Button (Visible only for SuperAdmin) -->
         <router-link
-          v-if="isLoggedIn && isRole === 'superAdmin'"
+          v-if="isLoggedIn && isRole_id === 1"
           to="/create"
           class="w-full sm:w-auto text-center bg-blue-600 hover:bg-blue-700 text-white font-semibold px-8 py-3 rounded-xl shadow-lg transition-all duration-300 transform hover:-translate-y-1 hover:shadow-xl"
         >
           Add New User
         </router-link>
 
+        <!-- Search input & Sort dropdowns -->
         <div class="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
+          <!-- Search by First Name -->
           <input
             type="text"
             placeholder="Search by first name..."
@@ -35,6 +40,8 @@
             v-model="searchName"
             @input="handleSearch"
           />
+
+          <!-- Sort Key Dropdown -->
           <select
             v-model="sortKey"
             @change="resetAndFetch"
@@ -44,6 +51,8 @@
             <option value="first_name">First Name</option>
             <option value="dob">DOB</option>
           </select>
+
+          <!-- Sort Order Dropdown -->
           <select
             v-model="sortOrder"
             @change="resetAndFetch"
@@ -55,7 +64,7 @@
         </div>
       </div>
 
-      <!-- Loader -->
+      <!-- ================= Loading Spinner ================= -->
       <div v-if="loading" class="flex justify-center items-center h-40">
         <div class="relative w-16 h-16">
           <div class="absolute inset-0 border-4 border-dashed rounded-full border-blue-500 animate-spin"></div>
@@ -63,7 +72,7 @@
         </div>
       </div>
 
-      <!-- User Table -->
+      <!-- ================= User Table ================= -->
       <div v-if="tableVisible" class="overflow-x-auto no-scrollbar">
         <table class="min-w-full bg-white rounded-3xl overflow-hidden shadow-lg transform transition-transform duration-300 hover:scale-[1.005]">
           <thead class="bg-gray-900 text-white">
@@ -95,15 +104,17 @@
               <td class="p-4 border-t border-gray-200">{{ user.address }}</td>
               <td class="p-4 border-t border-gray-200">
                 <div class="flex justify-center gap-3">
+                  <!-- Edit Button (Visible for SuperAdmin & Admin) -->
                   <button
-                    v-if="isLoggedIn && ['superAdmin', 'Admin'].includes(isRole)"
+                    v-if="isLoggedIn && [1, 2].includes(isRole_id)"
                     class="bg-yellow-500 hover:bg-yellow-600 text-white px-5 py-2 rounded-lg shadow-md transition-all duration-300 transform hover:scale-110"
                     @click="editUser(user)"
                   >
                     Edit
                   </button>
+                  <!-- Delete Button (Visible only for SuperAdmin) -->
                   <button
-                    v-if="isLoggedIn && isRole === 'superAdmin'"
+                    v-if="isLoggedIn && isRole_id === 1"
                     class="bg-red-500 hover:bg-red-600 text-white px-5 py-2 rounded-lg shadow-md transition-all duration-300 transform hover:scale-110"
                     @click="deleteUser(user.user_id)"
                   >
@@ -116,7 +127,7 @@
         </table>
       </div>
 
-      <!-- Pagination -->
+      <!-- ================= Pagination ================= -->
       <div class="flex items-center justify-center gap-6 mt-8">
         <button
           @click="prevPage"
@@ -137,7 +148,7 @@
         </button>
       </div>
 
-      <!-- No Users -->
+      <!-- ================= No Users Found Message ================= -->
       <div
         v-if="!loading && users.length === 0"
         class="text-center text-gray-500 mt-12 text-2xl font-semibold animate-fadeIn"
@@ -153,6 +164,8 @@ import { defineComponent, ref, computed, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import api from "../../axios";
 
+// ================= Type Definitions =================
+// User interface representing the API response structure
 interface User {
   user_id: number;
   first_name: string;
@@ -162,35 +175,40 @@ interface User {
   address: string;
 }
 
+// ================= Component Definition =================
 export default defineComponent({
   name: "UserList",
   setup() {
     const router = useRouter();
 
-    const users = ref<User[]>([]);
-    const page = ref(1);
-    const limit = ref(7);
-    const totalPages = ref(1);
-    const loading = ref(false);
-    const searchName = ref("");
-    const sortKey = ref("");
-    const sortOrder = ref<"ASC" | "DESC">("ASC");
-    const isLoggedIn = ref(false);
-    const isRole = ref<string>("");
+    // ================= Reactive State Variables =================
+    const users = ref<User[]>([]);               // Stores the list of users
+    const page = ref(1);                         // Current page number for pagination
+    const limit = ref(7);                        // Number of users per page
+    const totalPages = ref(1);                   // Total pages available
+    const loading = ref(false);                  // Loading spinner state
+    const searchName = ref("");                  // Search input for first name
+    const sortKey = ref("");                      // Sorting key (first_name or dob)
+    const sortOrder = ref<"ASC" | "DESC">("ASC"); // Sorting order
+    const isLoggedIn = ref(false);               // Login status
+    const isRole_id = ref<number>(0);            // Role ID of logged-in user
 
+    // Computed property to show table only if users exist
     const tableVisible = computed(() => users.value.length > 0);
 
+    // ================= Function: Check Admin Login =================
     const checkLogin = async () => {
       try {
         const res = await api.get("/admin/verify", { withCredentials: true });
         isLoggedIn.value = !!res.data?.admin;
-        isRole.value = res.data.admin.role;
+        isRole_id.value = res.data.admin.role_id;
       } catch {
         isLoggedIn.value = false;
-        isRole.value = "";
+        isRole_id.value = 0;
       }
     };
 
+    // ================= Function: Fetch Users from API =================
     const fetchUsers = async () => {
       try {
         loading.value = true;
@@ -216,6 +234,7 @@ export default defineComponent({
       }
     };
 
+    // ================= Function: Logout Admin =================
     const logoutAdmin = async () => {
       try {
         await api.post("/admin/logout", {}, { withCredentials: true });
@@ -226,16 +245,19 @@ export default defineComponent({
       router.push("/login");
     };
 
+    // ================= Function: Search Users =================
     const handleSearch = () => {
       page.value = 1;
       fetchUsers();
     };
 
+    // ================= Function: Reset Pagination and Fetch =================
     const resetAndFetch = () => {
       page.value = 1;
       fetchUsers();
     };
 
+    // ================= Pagination Functions =================
     const nextPage = () => {
       if (page.value < totalPages.value) {
         page.value++;
@@ -250,6 +272,8 @@ export default defineComponent({
       }
     };
 
+    // ================= User Actions =================
+    // Delete user (only if confirmed)
     const deleteUser = async (id: number) => {
       if (!confirm("Are you sure you want to delete this user?")) return;
       try {
@@ -260,13 +284,16 @@ export default defineComponent({
       }
     };
 
+    // Navigate to edit user page
     const editUser = (user: User) => {
       router.push({ name: "EditUser", params: { id: user.user_id } });
     };
 
+    // Format date in YYYY-MM-DD (Canada) format
     const formatDate = (dateStr: string) =>
       dateStr ? new Date(dateStr).toLocaleDateString("en-CA") : "";
 
+    // ================= Lifecycle Hook =================
     onMounted(async () => {
       await checkLogin();
       if (!isLoggedIn.value) {
@@ -276,6 +303,7 @@ export default defineComponent({
       }
     });
 
+    // ================= Return State & Functions =================
     return {
       users,
       page,
@@ -286,7 +314,7 @@ export default defineComponent({
       sortKey,
       sortOrder,
       isLoggedIn,
-      isRole,
+      isRole_id,
       tableVisible,
       fetchUsers,
       handleSearch,
