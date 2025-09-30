@@ -1,24 +1,24 @@
 import { createRouter, createWebHistory, RouteRecordRaw } from "vue-router";
+import api from "../axios";
 
-// Components
+// ================= Components =================
 import UserList from "../components/List/UserList.vue";
 import UserForm from "../components/Form/CreateUsers.vue";
 import EditUser from "../components/Edit/editUser.vue";
 import UserLogin from "../userAuth/Login/userLogin.vue";
-//import UserRegister from "../userAuth/Register/userRegister.vue";
 
+// ================= Route Definitions =================
 const routes: Array<RouteRecordRaw> = [
-  { path: "/", redirect: "/users" },
+  // Default redirect
+  { path: "/", redirect: "/login" },
 
-  // Public route → users list always accessible
+  // ---------------- Protected Routes ----------------
   {
     path: "/users",
     name: "UserList",
     component: UserList,
-    meta: { requiresAuth: false }, 
+    meta: { requiresAuth: true }, // only accessible if logged in
   },
-
-  // Protected routes
   {
     path: "/create",
     name: "CreateUser",
@@ -29,91 +29,53 @@ const routes: Array<RouteRecordRaw> = [
     path: "/users/:id/edit",
     name: "EditUser",
     component: EditUser,
-    props: (route) => ({ id: Number(route.params.id) }),
+    props: (route) => ({ id: Number(route.params.id) }), // pass ID as prop
     meta: { requiresAuth: true },
   },
 
-  // Public routes
-  { path: "/login", name: "Login", component: UserLogin },
-  //{ path: "/register", name: "Register", component: UserRegister },
+  // ---------------- Public Routes ----------------
+  {
+    path: "/login",
+    name: "Login",
+    component: UserLogin,
+  },
 
+  // Catch-all route: redirect unknown paths to users
   { path: "/:pathMatch(.*)*", redirect: "/users" },
 ];
 
- const router = createRouter({
+// ================= Router Instance =================
+const router = createRouter({
   history: createWebHistory(),
-     routes,
- });
+  routes,
+});
 
-router.beforeEach((to, from, next) => {
-  const token = localStorage.getItem("token");
+// ================= Navigation Guards =================
+router.beforeEach(async (to, from, next) => {
   const requiresAuth = to.meta.requiresAuth as boolean;
 
-  if (requiresAuth && !token) {
-    // not logged in but trying to access protected route
-    next("/login");
-  } else {
+  // Check protected routes
+  if (requiresAuth) {
+    try {
+      await api.get("/admin/verify", { withCredentials: true });
+      next(); // user authenticated, proceed
+    } catch {
+      next("/login"); // not authenticated, redirect to login
+    }
+  }
+  // Redirect logged-in users away from login page
+  else if (to.path === "/login") {
+    try {
+      await api.get("/admin/verify", { withCredentials: true });
+      next("/users"); // already logged in, redirect to user list
+    } catch {
+      next(); // not logged in, allow access to login
+    }
+  }
+  // Public routes with no auth required
+  else {
     next();
   }
 });
-
-
-
-
-
-
-
-
-// Define routes
-// const routes: Array<RouteRecordRaw> = [
-//   { path: "/", redirect: "/users" },
-
-//   // Protected routes
-//   {
-//     path: "/users",
-//     name: "UserList",
-//     component: UserList,
-//     meta: { requiresAuth: true },
-//   },
-//   {
-//     path: "/create",
-//     name: "CreateUser",
-//     component: UserForm,
-//     meta: { requiresAuth: true },
-//   },
-//   {
-//     path: "/users/:id/edit",
-//     name: "EditUser",
-//     component: EditUser,
-//     props: (route) => ({ id: Number(route.params.id) }),
-//     meta: { requiresAuth: true },
-//   },
-
-//   // Public routes
-//   { path: "/login", name: "Login", component: UserLogin },
-//   { path: "/register", name: "Register", component: UserRegister },
-
-//   // Catch-all route (404)
-//   { path: "/:pathMatch(.*)*", redirect: "/login" },
-// ];
-
-// const router = createRouter({
-//   history: createWebHistory(),
-//   routes,
-// });
-
-// // Global navigation guard
-// router.beforeEach((to, from, next) => {
-//   const token = localStorage.getItem("token");
-//   const requiresAuth = (to.meta as any).requiresAuth as boolean; // cast to boolean
-
-//   if (requiresAuth && !token) {
-//     next("/login"); // redirect if not logged in
-//   } else if ((to.path === "/login" || to.path === "/register") && token) {
-//     next("/users"); // prevent going back to login/register when already logged in
-//   } else {
-//     next();
-//   }
-// });
 
 export default router;

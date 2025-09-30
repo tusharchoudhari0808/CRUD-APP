@@ -1,124 +1,171 @@
-
-
-
 <template>
-  <div class="max-w-6xl mx-auto p-8">
-    <!-- Title + Logout -->
-    <div class="flex justify-between items-center mb-6">
-      <h2 class="text-4xl font-extrabold bg-gradient-to-r from-black to-blue-500 bg-clip-text text-transparent tracking-wide">
-        User List
-      </h2>
+  <div class="min-h-screen bg-gradient-to-br from-gray-200 to-blue-50 p-8 sm:p-12">
+    <div class="max-w-7xl mx-auto bg-white shadow-2xl rounded-3xl p-6 sm:p-10 transform transition duration-500 hover:scale-[1.005] hover:shadow-3xl">
+      
+      <!-- ================= Header Section ================= -->
+      <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
+        <!-- Page Title -->
+        <h2 class="text-4xl sm:text-5xl font-extrabold mb-2 text-center bg-gradient-to-r from-gray-900 to-blue-600 bg-clip-text text-transparent tracking-wide drop-shadow-lg animate-pulse-slow">
+          User List
+        </h2>
 
-      <!-- Show Logout only if logged in -->
-      <button 
-        v-if="isLoggedIn" 
-        @click="logoutAdmin" 
-        class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg shadow-md"
-      >
-        Logout
-      </button>
-    </div>
-
-    <!-- Add User -->
-    <div class="flex justify-end mb-6">
-      <router-link 
-        v-if="isLoggedIn"
-        to="/create" 
-        class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg shadow-md transition transform hover:scale-105"
-      >
-        Add User
-      </router-link>
-    </div>
-
-    <!-- Search + Sort -->
-    <div class="flex flex-wrap gap-4 mb-6">
-      <input
-        type="text"
-        placeholder="Search by first name..."
-        class="flex-1 min-w-[250px] px-4 py-3 border rounded-lg"
-        v-model="searchName"
-        @input="handleSearch"
-      />
-      <select v-model="sortKey" @change="resetAndFetch" class="px-4 py-3 border rounded-lg">
-        <option value="">Sort By</option>
-        <option value="first_name">First Name</option>
-        <option value="dob">DOB</option>
-      </select>
-      <select v-model="sortOrder" @change="resetAndFetch" class="px-4 py-3 border rounded-lg">
-        <option value="ASC">Ascending</option>
-        <option value="DESC">Descending</option>
-      </select>
-    </div>
-
-    <!-- Loader -->
-    <div v-if="loading" class="flex justify-center items-center h-40">
-      <div class="w-12 h-12 rounded-full border-4 border-t-blue-500 border-r-green-500 border-b-yellow-500 border-l-red-500 animate-spin"></div>
-    </div>
-
-    <!-- Table -->
-    <div v-if="tableVisible" class="overflow-x-auto">
-      <table class="min-w-full border border-gray-200 bg-white rounded-xl shadow-lg overflow-hidden">
-        <thead class="bg-gradient-to-r from-black to-blue-500 text-white">
-          <tr>
-            <th class="p-4 text-left border">ID</th>
-            <th class="p-4 text-left border">First Name</th>
-            <th class="p-4 text-left border">Last Name</th>
-            <th class="p-4 text-left border">DOB</th>
-            <th class="p-4 text-left border">Mobile</th>
-            <th class="p-4 text-left border">Address</th>
-            <th class="p-4 text-center border">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="user in users" :key="user.user_id" class="hover:bg-gray-50 transition">
-            <td class="p-4 border">{{ user.user_id }}</td>
-            <td class="p-4 border">{{ user.first_name }}</td>
-            <td class="p-4 border">{{ user.last_name }}</td>
-            <td class="p-4 border">{{ formatDate(user.dob) }}</td>
-            <td class="p-4 border">{{ user.mobile_number }}</td>
-            <td class="p-4 border">{{ user.address }}</td>
-            <td class="p-4 border">
-              <div class="flex justify-center gap-3">
-                <!-- Edit/Delete only if logged in -->
-                <button 
-                  v-if="isLoggedIn"
-                  class="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded-lg" 
-                  @click="editUser(user)"
-                >
-                  Edit
-                </button>
-                <button 
-                  v-if="isLoggedIn"
-                  class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg" 
-                  @click="deleteUser(user.user_id)"
-                >
-                  Delete
-                </button>
-              </div>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-
-      <!-- Pagination -->
-      <div class="flex items-center justify-center gap-6 mt-6">
-        <button @click="prevPage" :disabled="page === 1" class="px-4 py-2 bg-gray-300 rounded-lg disabled:opacity-50">Prev</button>
-        <span>Page {{ page }} of {{ totalPages }}</span>
-        <button @click="nextPage" :disabled="page === totalPages" class="px-4 py-2 bg-gray-300 rounded-lg disabled:opacity-50">Next</button>
+        <!-- Logout Button (Visible if logged in) -->
+        <button
+          v-if="isLoggedIn"
+          @click="logoutAdmin"
+          class="bg-red-600 hover:bg-red-700 text-white font-semibold px-6 py-3 rounded-xl shadow-md transition-all duration-300 transform hover:scale-105 hover:shadow-xl"
+        >
+          Logout
+        </button>
       </div>
-    </div>
 
-    <!-- No Users -->
-    <div v-if="!loading && users.length === 0" class="text-center text-gray-500 mt-8 text-lg">
-      No users found.
+      <!-- ================= Search + Sort Section ================= -->
+      <div class="flex flex-col sm:flex-row justify-between items-center mb-8 gap-4">
+        <!-- Add New User Button (Visible only for SuperAdmin) -->
+        <router-link
+          v-if="isLoggedIn && isRole_id === 1"
+          to="/create"
+          class="w-full sm:w-auto text-center bg-blue-600 hover:bg-blue-700 text-white font-semibold px-8 py-3 rounded-xl shadow-lg transition-all duration-300 transform hover:-translate-y-1 hover:shadow-xl"
+        >
+          Add New User
+        </router-link>
+
+        <!-- Search input & Sort dropdowns -->
+        <div class="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
+          <!-- Search by First Name -->
+          <input
+            type="text"
+            placeholder="Search by first name..."
+            class="flex-1 min-w-[200px] px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-4 focus:ring-blue-500/50 focus:border-blue-500 transition-all duration-300"
+            v-model="searchName"
+            @input="handleSearch"
+          />
+
+          <!-- Sort Key Dropdown -->
+          <select
+            v-model="sortKey"
+            @change="resetAndFetch"
+            class="px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-4 focus:ring-blue-500/50 focus:border-blue-500 transition-all duration-300"
+          >
+            <option value="">Sort By</option>
+            <option value="first_name">First Name</option>
+            <option value="dob">DOB</option>
+          </select>
+
+          <!-- Sort Order Dropdown -->
+          <select
+            v-model="sortOrder"
+            @change="resetAndFetch"
+            class="px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-4 focus:ring-blue-500/50 focus:border-blue-500 transition-all duration-300"
+          >
+            <option value="ASC">Ascending</option>
+            <option value="DESC">Descending</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- ================= Loading Spinner ================= -->
+      <div v-if="loading" class="flex justify-center items-center h-40">
+        <div class="relative w-16 h-16">
+          <div class="absolute inset-0 border-4 border-dashed rounded-full border-blue-500 animate-spin"></div>
+          <div class="absolute inset-2 border-4 border-solid rounded-full border-blue-300 animate-spin-reverse"></div>
+        </div>
+      </div>
+
+      <!-- ================= User Table ================= -->
+      <div v-if="tableVisible" class="overflow-x-auto no-scrollbar">
+        <table class="min-w-full bg-white rounded-3xl overflow-hidden shadow-lg transform transition-transform duration-300 hover:scale-[1.005]">
+          <thead class="bg-gray-900 text-white">
+            <tr>
+              <th class="p-4 text-left font-semibold">ID</th>
+              <th class="p-4 text-left font-semibold">First Name</th>
+              <th class="p-4 text-left font-semibold">Last Name</th>
+              <th class="p-4 text-left font-semibold">DOB</th>
+              <th class="p-4 text-left font-semibold">Mobile</th>
+              <th class="p-4 text-left font-semibold">Address</th>
+              <th class="p-4 text-center font-semibold">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr
+              v-for="(user, index) in users"
+              :key="user.user_id"
+              :class="{
+                'bg-gray-50': index % 2 !== 0,
+                'hover:bg-gray-100': true,
+                'transition-all duration-200': true,
+              }"
+            >
+              <td class="p-4 border-t border-gray-200">{{ user.user_id }}</td>
+              <td class="p-4 border-t border-gray-200">{{ user.first_name }}</td>
+              <td class="p-4 border-t border-gray-200">{{ user.last_name }}</td>
+              <td class="p-4 border-t border-gray-200">{{ formatDate(user.dob) }}</td>
+              <td class="p-4 border-t border-gray-200">{{ user.mobile_number }}</td>
+              <td class="p-4 border-t border-gray-200">{{ user.address }}</td>
+              <td class="p-4 border-t border-gray-200">
+                <div class="flex justify-center gap-3">
+                  <!-- Edit Button (Visible for SuperAdmin & Admin) -->
+                  <button
+                    v-if="isLoggedIn && [1, 2].includes(isRole_id)"
+                    class="bg-yellow-500 hover:bg-yellow-600 text-white px-5 py-2 rounded-lg shadow-md transition-all duration-300 transform hover:scale-110"
+                    @click="editUser(user)"
+                  >
+                    Edit
+                  </button>
+                  <!-- Delete Button (Visible only for SuperAdmin) -->
+                  <button
+                    v-if="isLoggedIn && isRole_id === 1"
+                    class="bg-red-500 hover:bg-red-600 text-white px-5 py-2 rounded-lg shadow-md transition-all duration-300 transform hover:scale-110"
+                    @click="deleteUser(user.user_id)"
+                  >
+                    Delete
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- ================= Pagination ================= -->
+      <div class="flex items-center justify-center gap-6 mt-8">
+        <button
+          @click="prevPage"
+          :disabled="page === 1"
+          class="px-6 py-3 bg-gray-300 text-gray-800 font-semibold rounded-full disabled:opacity-50 transition-all duration-300 transform hover:scale-105 hover:bg-gray-400"
+        >
+          Prev
+        </button>
+        <span class="text-gray-600 font-medium text-lg">
+          Page {{ page }} of {{ totalPages }}
+        </span>
+        <button
+          @click="nextPage"
+          :disabled="page === totalPages"
+          class="px-6 py-3 bg-gray-300 text-gray-800 font-semibold rounded-full disabled:opacity-50 transition-all duration-300 transform hover:scale-105 hover:bg-gray-400"
+        >
+          Next
+        </button>
+      </div>
+
+      <!-- ================= No Users Found Message ================= -->
+      <div
+        v-if="!loading && users.length === 0"
+        class="text-center text-gray-500 mt-12 text-2xl font-semibold animate-fadeIn"
+      >
+        No users found.
+      </div>
     </div>
   </div>
 </template>
 
 <script lang="ts">
-import { defineComponent } from "vue";
+import { defineComponent, ref, computed, onMounted } from "vue";
+import { useRouter } from "vue-router";
 import api from "../../axios";
 
+// ================= Type Definitions =================
+// User interface representing the API response structure
 interface User {
   user_id: number;
   first_name: string;
@@ -128,103 +175,157 @@ interface User {
   address: string;
 }
 
+// ================= Component Definition =================
 export default defineComponent({
   name: "UserList",
-  data() {
-    return {
-      users: [] as User[],
-      page: 1,
-      limit: 7,
-      totalPages: 1,
-      loading: false,
-      searchName: "",
-      sortKey: "",
-      sortOrder: "ASC" as "ASC" | "DESC",
-    };
-  },
-  computed: {
-    tableVisible(): boolean {
-      return !this.loading && this.users.length > 0;
-    },
-    isLoggedIn(): boolean {
-      return !!localStorage.getItem("token");
-    }
-  },
-  mounted() {
-    this.fetchUsers();
-  },
-  methods: {
-    async fetchUsers() {
+  setup() {
+    const router = useRouter();
+
+    // ================= Reactive State Variables =================
+    const users = ref<User[]>([]);               // Stores the list of users
+    const page = ref(1);                         // Current page number for pagination
+    const limit = ref(7);                        // Number of users per page
+    const totalPages = ref(1);                   // Total pages available
+    const loading = ref(false);                  // Loading spinner state
+    const searchName = ref("");                  // Search input for first name
+    const sortKey = ref("");                      // Sorting key (first_name or dob)
+    const sortOrder = ref<"ASC" | "DESC">("ASC"); // Sorting order
+    const isLoggedIn = ref(false);               // Login status
+    const isRole_id = ref<number>(0);            // Role ID of logged-in user
+
+    // Computed property to show table only if users exist
+    const tableVisible = computed(() => users.value.length > 0);
+
+    // ================= Function: Check Admin Login =================
+    const checkLogin = async () => {
       try {
-        this.loading = true;
+        const res = await api.get("/admin/verify", { withCredentials: true });
+        isLoggedIn.value = !!res.data?.admin;
+        isRole_id.value = res.data.admin.role_id;
+      } catch {
+        isLoggedIn.value = false;
+        isRole_id.value = 0;
+      }
+    };
+
+    // ================= Function: Fetch Users from API =================
+    const fetchUsers = async () => {
+      try {
+        loading.value = true;
         const res = await api.get("/users", {
+          withCredentials: true,
           params: {
-            page: this.page,
-            limit: this.limit,
-            first_name: this.searchName || undefined,
-            sortKey: this.sortKey || undefined,
-            order: this.sortOrder || undefined,
+            page: page.value,
+            limit: limit.value,
+            first_name: searchName.value || undefined,
+            sortKey: sortKey.value || undefined,
+            order: sortOrder.value || undefined,
           },
         });
-
-      //  console.log("Fetched users:", res.data);
-
         const paginatedData = res.data.data;
-        this.users = paginatedData?.data || [];
-        this.totalPages = paginatedData?.totalPages || 1;
-
+        users.value = paginatedData?.data || [];
+        totalPages.value = paginatedData?.totalPages || 1;
       } catch (err) {
         console.error("Error fetching users:", err);
-        this.users = [];
-        this.totalPages = 1;
+        users.value = [];
+        totalPages.value = 1;
       } finally {
-        this.loading = false;
+        loading.value = false;
       }
-    },
-    handleSearch() {
-      this.page = 1;
-      this.fetchUsers();
-    },
-    resetAndFetch() {
-      this.page = 1;
-      this.fetchUsers();
-    },
-    nextPage() {
-      if (this.page < this.totalPages) {
-        this.page++;
-        this.fetchUsers();
+    };
+
+    // ================= Function: Logout Admin =================
+    const logoutAdmin = async () => {
+      try {
+        await api.post("/admin/logout", {}, { withCredentials: true });
+      } catch (err) {
+        console.warn("Logout failed (maybe no active session).");
       }
-    },
-    prevPage() {
-      if (this.page > 1) {
-        this.page--;
-        this.fetchUsers();
+      isLoggedIn.value = false;
+      router.push("/login");
+    };
+
+    // ================= Function: Search Users =================
+    const handleSearch = () => {
+      page.value = 1;
+      fetchUsers();
+    };
+
+    // ================= Function: Reset Pagination and Fetch =================
+    const resetAndFetch = () => {
+      page.value = 1;
+      fetchUsers();
+    };
+
+    // ================= Pagination Functions =================
+    const nextPage = () => {
+      if (page.value < totalPages.value) {
+        page.value++;
+        fetchUsers();
       }
-    },
-    deleteUser(id: number) {
-      if (confirm("Are you sure you want to delete this user?")) {
-        api.delete(`/users/${id}`).then(() => this.fetchUsers());
+    };
+
+    const prevPage = () => {
+      if (page.value > 1) {
+        page.value--;
+        fetchUsers();
       }
-    },
-    editUser(user: User) {
-      this.$router.push({ name: "EditUser", params: { id: user.user_id } });
-    },
-    logoutAdmin() {
-      localStorage.removeItem("token");
-      localStorage.removeItem("admin");
-      this.$router.push("/login");
-    },
-    formatDate(dateStr: string): string {
-      return dateStr ? new Date(dateStr).toLocaleDateString("en-CA") : "";
-    },
+    };
+
+    // ================= User Actions =================
+    // Delete user (only if confirmed)
+    const deleteUser = async (id: number) => {
+      if (!confirm("Are you sure you want to delete this user?")) return;
+      try {
+        await api.delete(`/users/${id}`, { withCredentials: true });
+        fetchUsers();
+      } catch (err) {
+        console.error("Failed to delete user:", err);
+      }
+    };
+
+    // Navigate to edit user page
+    const editUser = (user: User) => {
+      router.push({ name: "EditUser", params: { id: user.user_id } });
+    };
+
+    // Format date in YYYY-MM-DD (Canada) format
+    const formatDate = (dateStr: string) =>
+      dateStr ? new Date(dateStr).toLocaleDateString("en-CA") : "";
+
+    // ================= Lifecycle Hook =================
+    onMounted(async () => {
+      await checkLogin();
+      if (!isLoggedIn.value) {
+        router.push("/login");
+      } else {
+        fetchUsers();
+      }
+    });
+
+    // ================= Return State & Functions =================
+    return {
+      users,
+      page,
+      limit,
+      totalPages,
+      loading,
+      searchName,
+      sortKey,
+      sortOrder,
+      isLoggedIn,
+      isRole_id,
+      tableVisible,
+      fetchUsers,
+      handleSearch,
+      resetAndFetch,
+      nextPage,
+      prevPage,
+      deleteUser,
+      editUser,
+      formatDate,
+      logoutAdmin,
+    };
   },
 });
 </script>
-
-
-
-
-
-
-
-

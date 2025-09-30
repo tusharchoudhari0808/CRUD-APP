@@ -1,9 +1,7 @@
-// src/controllers/userController.ts
 import { Request, Response } from "express";
-import userDB from "../config/db";
-import { success, error } from "../utils/response";
+import userDB from "../config/db"; // PostgreSQL connection pool
+import { success, error } from "../utils/response"; // Standardized response helpers
 import { 
-  User, 
   UserRecord, 
   CreateUserBody, 
   UpdateUserBody, 
@@ -11,7 +9,11 @@ import {
   PaginatedResult 
 } from "../Types/types";
 
-// Create New User
+/* ============================================================
+   CREATE USER
+   - Insert a new user into the DB
+   - Return created user record
+============================================================ */
 export const userCreate = async (
   req: Request<{}, {}, CreateUserBody>, 
   res: Response
@@ -20,23 +22,23 @@ export const userCreate = async (
 
   try {
     const result = await userDB.query<UserRecord>(
-      `INSERT INTO users (first_name, last_name,dob, mobile_number, address)
+      `INSERT INTO users (first_name, last_name, dob, mobile_number, address)
        VALUES ($1, $2, $3, $4, $5) RETURNING *`,
       [first_name, last_name, dob, mobile_number, address]
     );
 
     success(res, result.rows[0], "User created successfully", 201);
   } catch (err) {
-    console.error("Error creating user:", err);
+    console.error(" Error creating user:", err);
     error(res, "Failed to create user", 500, err instanceof Error ? err.message : String(err));
   }
 };
 
-// Get all Users
-export const getUsers = async (
-  req: Request, 
-  res: Response
-): Promise<void> => {
+/* ============================================================
+   GET ALL USERS
+   - Fetch all users (ordered by user_id)
+============================================================ */
+export const getUsers = async (req: Request, res: Response): Promise<void> => {
   try {
     const result = await userDB.query<UserRecord>(
       `SELECT user_id, first_name, last_name, dob, mobile_number, address 
@@ -46,12 +48,15 @@ export const getUsers = async (
 
     success(res, result.rows, "Users fetched successfully", 200);
   } catch (err) {
-    console.error("Error fetching users:", err);
+    console.error(" Error fetching users:", err);
     error(res, "Failed to fetch users", 500, err instanceof Error ? err.message : String(err));
   }
 };
 
-// Get User by ID
+/* ============================================================
+   GET USER BY ID
+   - Fetch single user by user_id
+============================================================ */
 export const getUserById = async (
   req: Request<{id:string}>, 
   res: Response
@@ -71,12 +76,15 @@ export const getUserById = async (
 
     success(res, result.rows[0], "User fetched successfully", 200);
   } catch (err) {
-    console.error("Error fetching user:", err);
+    console.error(" Error fetching user:", err);
     error(res, "Failed to fetch user", 500, err instanceof Error ? err.message : String(err));
   }
 };
 
-// Update User
+/* ============================================================
+   UPDATE USER
+   - Update user details by ID
+============================================================ */
 export const updateUser = async (
   req: Request<{id:string}, {}, UpdateUserBody>, 
   res: Response
@@ -99,12 +107,15 @@ export const updateUser = async (
 
     success(res, result.rows[0], "User updated successfully", 200);
   } catch (err) {
-    console.error("Error updating user:", err);
+    console.error(" Error updating user:", err);
     error(res, "Failed to update user", 500, err instanceof Error ? err.message : String(err));
   }
 };
 
-// Delete User
+/* ============================================================
+   DELETE USER
+   - Remove user by ID
+============================================================ */
 export const deleteUser = async (
   req: Request<{id:string}>, 
   res: Response
@@ -124,15 +135,17 @@ export const deleteUser = async (
 
     success(res, result.rows[0], "User deleted successfully", 200);
   } catch (err) {
-    console.error("Error deleting user:", err);
+    console.error(" Error deleting user:", err);
     error(res, "Failed to delete user", 500, err instanceof Error ? err.message : String(err));
   }
 };
 
-
-
-
-/// Pagination + Search + Sort
+/* ============================================================
+   PAGINATION + SEARCH + SORT
+   - Supports page & limit
+   - Search by first_name
+   - Sort by user_id, first_name, dob
+============================================================ */
 export const paginateUsers = async (
   req: Request<{}, {}, {}, PaginationQuery>, 
   res: Response
@@ -141,16 +154,17 @@ export const paginateUsers = async (
   const limit = parseInt(req.query.limit || "10");
   const skip = (page - 1) * limit;
 
-  const first_name = req.query.first_name || null;
-  const sortKey = req.query.sortKey || "user_id";
-  const order = (req.query.order || "ASC").toUpperCase();
+  const first_name = req.query.first_name || null; // optional search filter
+  const sortKey = req.query.sortKey || "user_id";  // sorting column
+  const order = (req.query.order || "ASC").toUpperCase(); // sort order
 
+  // Allow only whitelisted columns to prevent SQL injection
   const validSort: string[] = ["first_name", "dob", "user_id"];
   const sortColumn = validSort.includes(sortKey) ? sortKey : "user_id";
   const sortOrder = order === "DESC" ? "DESC" : "ASC";
 
   try {
-    // Fetch users
+    // Fetch paginated users
     const result = await userDB.query<UserRecord>(
       `
       SELECT * FROM users
@@ -161,7 +175,7 @@ export const paginateUsers = async (
       [first_name ? `%${first_name}%` : null, limit, skip]
     );
 
-    // Count total matching users
+    // Count total for pagination metadata
     const countRes = await userDB.query<{ count: string }>(
       `SELECT COUNT(*) FROM users WHERE ($1::text IS NULL OR first_name ILIKE $1)`,
       [first_name ? `%${first_name}%` : null]
@@ -169,19 +183,18 @@ export const paginateUsers = async (
 
     const total = parseInt(countRes.rows[0]?.count ?? "0", 10);
 
-    // Send paginated response
+    // Paginated response format
     const response: PaginatedResult = {
       page,
       limit,
       total,
       totalPages: Math.ceil(total / limit),
-      data: result.rows, // array of users
+      data: result.rows,
     };
 
     success(res, response, "Users fetched successfully", 200);
-
   } catch (err) {
-    console.error("Error fetching paginated users:", err);
+    console.error(" Error fetching paginated users:", err);
     error(res, "Failed to fetch users", 500, err instanceof Error ? err.message : String(err));
   }
 };

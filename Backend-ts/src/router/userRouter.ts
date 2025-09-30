@@ -1,115 +1,63 @@
 import { Router } from "express";
-import {
-  userCreate,
-  getUserById,
-  updateUser,
-  deleteUser,
-  paginateUsers,
+import { verifyToken } from "../middlewares/auth";
+import authorisePermission from "../middlewares/authRole"; // Middleware for DB-driven role/permission check
+import { 
+  userCreate, 
+  getUserById, 
+  updateUser, 
+  deleteUser, 
+  paginateUsers 
 } from "../controllers/userController";
 import { validate } from "../middlewares/validate";
 import { userSchema } from "../validation/userSchema";
-import { verifyToken } from "../middlewares/auth";
-
-import {AdminLogin} from "../validation/userSchema";
 
 const router = Router();
 
-// Public Route
-router.get("/", paginateUsers);  
+/**
+ * @route   GET /api/users
+ * @desc    Get paginated list of users
+ * @access  Private (requires 'view_users' permission)
+ */
+router.get("/", verifyToken, authorisePermission("view_users"), paginateUsers);
 
+/**
+ * @route   POST /api/users
+ * @desc    Create a new user
+ * @access  Private (requires 'create_users' permission)
+ */
+router.post(
+  "/", 
+  verifyToken, 
+  authorisePermission("create_users"), 
+  validate(userSchema), 
+  userCreate
+);
 
-// Protected Routes
-router.post("/", verifyToken, validate(userSchema), userCreate);
-router.get("/:id", verifyToken, getUserById);
-router.put("/:id", verifyToken, validate(userSchema), updateUser);
-router.delete("/:id", verifyToken, deleteUser);
+/**
+ * @route   GET /api/users/:id
+ * @desc    Get user details by ID
+ * @access  Private (requires 'edit_users' permission)
+ */
+router.get("/:id", verifyToken, authorisePermission("edit_users"), getUserById);
 
+/**
+ * @route   PUT /api/users/:id
+ * @desc    Update user details by ID
+ * @access  Private (requires 'update_users' permission)
+ */
+router.put(
+  "/:id", 
+  verifyToken, 
+  authorisePermission("update_users"), 
+  validate(userSchema), 
+  updateUser
+);
 
-
+/**
+ * @route   DELETE /api/users/:id
+ * @desc    Delete a user by ID
+ * @access  Private (requires 'delete_users' permission)
+ */
+router.delete("/:id", verifyToken, authorisePermission("delete_users"), deleteUser);
 
 export default router;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// import { Router } from "express";
-// import {
-//   userCreate,
-//   getUserById,
-//   updateUser,
-//   deleteUser,
-//   paginateUsers,
-// } from "../controllers/userController";
-// import { validate } from "../middlewares/validate";
-// import { userSchema } from "../validation/userSchema";
-// import { verifyToken } from "../middlewares/auth"; 
-
-// const router = Router();
-
-// // CRUD Routes
-
-// // Create user (protected + validated)
-// router.post("/", verifyToken, validate(userSchema), userCreate);
-
-// // Pagination, search, sort (protected)
-// router.get("/", verifyToken, paginateUsers);
-
-// // Get user by ID (protected)
-// router.get("/:id", verifyToken, getUserById);
-
-// // Update user by ID (protected + validated)
-// router.put("/:id", verifyToken, validate(userSchema), updateUser);
-
-// // Delete user by ID (protected)
-// router.delete("/:id", verifyToken, deleteUser);
-
-// export default router;
